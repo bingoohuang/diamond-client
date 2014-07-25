@@ -8,11 +8,11 @@
     </parent>
     <groupId>com.github.bingoohuang</groupId>
     <artifactId>diamond-client</artifactId>
-    <version>0.0.1-SNAPSHOT</version>
+    <version>0.0.1</version>
     <name>diamond client</name>
 
     <description>a config client of diamond</description>
-    <url>http://github.com/bingoohuang/diamond-miner</url>
+    <url>http://github.com/bingoohuang/diamond-client</url>
     <licenses>
         <license>
             <name>Lesser General Public License</name>
@@ -21,9 +21,9 @@
     </licenses>
 
     <scm>
-        <connection>scm:git:git@github.com:bingoohuang/diamond-miner.git</connection>
-        <url>http://github.com/bingoohuang/diamond-miner</url>
-        <developerConnection>scm:git:git@github.com:bingoohuang/diamond-miner.git</developerConnection>
+        <connection>scm:git:git@github.com:bingoohuang/diamond-client.git</connection>
+        <url>http://github.com/bingoohuang/diamond-client</url>
+        <developerConnection>scm:git:git@github.com:bingoohuang/diamond-client.git</developerConnection>
     </scm>
 
     <developers>
