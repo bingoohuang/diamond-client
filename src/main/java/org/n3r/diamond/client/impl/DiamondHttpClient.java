@@ -1,7 +1,10 @@
 package org.n3r.diamond.client.impl;
 
+import com.google.common.base.Splitter;
+import com.google.common.base.Strings;
 import com.google.common.net.HostAndPort;
 import org.apache.commons.httpclient.*;
+import org.apache.commons.httpclient.auth.AuthScope;
 import org.apache.commons.httpclient.methods.GetMethod;
 import org.apache.commons.httpclient.methods.PostMethod;
 import org.apache.commons.httpclient.params.HttpConnectionManagerParams;
@@ -13,8 +16,8 @@ import org.slf4j.LoggerFactory;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
-import java.util.concurrent.atomic.AtomicInteger;
 import java.util.zip.GZIPInputStream;
 
 class DiamondHttpClient {
@@ -45,12 +48,31 @@ class DiamondHttpClient {
         setHostConfig();
     }
 
+    private void setBasicAuth(String host, int port) {
+        String basicAuth = ClientProperties.getBasicAuth();
+        if (Strings.isNullOrEmpty(basicAuth)) return;
+
+        List<String> splits = Splitter.on(':').trimResults().splitToList(basicAuth);
+        if (splits.size() < 2) return;
+        String userName = splits.get(0);
+        String passWord = splits.get(1);
+
+        httpClient.getParams().setAuthenticationPreemptive(true);
+        Credentials defaultcreds = new UsernamePasswordCredentials(userName, passWord);
+        AuthScope authScope = new AuthScope(host, port, AuthScope.ANY_REALM);
+        httpClient.getState().setCredentials(authScope, defaultcreds);
+    }
+
     private void setHostConfig() {
         String hostPort = diamondManagerConf.getDomainName();
         HostAndPort hostAndPort = HostAndPort.fromString(hostPort);
         int portOrDefault = hostAndPort.getPortOrDefault(Constants.DEFAULT_DIAMOND_SERVER_PORT);
         HostConfiguration hostConfiguration = httpClient.getHostConfiguration();
-        hostConfiguration.setHost(hostAndPort.getHostText(), portOrDefault);
+        String hostText = hostAndPort.getHostText();
+        hostConfiguration.setHost(hostText, portOrDefault);
+
+
+        setBasicAuth(hostText, portOrDefault);
     }
 
 

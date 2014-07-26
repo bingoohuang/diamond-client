@@ -239,7 +239,7 @@ class DiamondRemoteChecker {
 
         contentCache.put(diamondAxis, diamondContent);
 
-        log.info("received {}, content={}", diamondAxis, diamondContent);
+        log.debug("received {}, content={}", diamondAxis, diamondContent);
 
         return diamondContent;
     }

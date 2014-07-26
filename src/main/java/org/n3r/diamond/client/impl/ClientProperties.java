@@ -86,6 +86,10 @@ public class ClientProperties {
         }
     }
 
+    public static String getBasicAuth() {
+        return properties.getProperty("BasicAuth");
+    }
+
     public static enum NameServerMode {
         Off, ByEtcHosts, ByAddressProperty
     }
