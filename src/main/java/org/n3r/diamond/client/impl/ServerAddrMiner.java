@@ -59,7 +59,7 @@ class ServerAddrMiner {
     }
 
     private void initHttpClient() {
-        if (readNameServerMode() != NameServerMode.Off) return;
+        if (readNameServerMode() == NameServerMode.Off) return;
 
         connectionManager = new SimpleHttpConnectionManager();
         connectionManager.closeIdleConnections(5000L);
