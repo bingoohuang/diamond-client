@@ -77,7 +77,7 @@ public class DiamondSubscriber implements Closeable {
 
         running = true;
 
-        log.info("name servers {}", managerConfig.getNameServers());
+        log.info("diamond servers {}", managerConfig.getDiamondServers());
 
         rotateCheckDiamonds();
 
@@ -98,19 +98,19 @@ public class DiamondSubscriber implements Closeable {
         int pollingInterval = managerConfig.getPollingInterval();
         scheduler.scheduleWithFixedDelay(new Runnable() {
             public void run() {
-                rotateCheckDiamonsTask();
+                rotateCheckDiamondsTask();
             }
 
         }, pollingInterval, pollingInterval, TimeUnit.SECONDS);
     }
 
-    private void rotateCheckDiamonsTask() {
+    private void rotateCheckDiamondsTask() {
         try {
             checkLocal();
             diamondRemoteChecker.checkRemote();
             checkSnapshot();
         } catch (Exception e) {
-            log.error("rotateCheckDiamonsTask error {}", e.getMessage());
+            log.warn("rotateCheckDiamondsTask error {}", e.getMessage());
         }
     }
 

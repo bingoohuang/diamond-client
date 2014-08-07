@@ -10,6 +10,7 @@ import org.apache.commons.httpclient.methods.PostMethod;
 import org.apache.commons.httpclient.params.HttpConnectionManagerParams;
 import org.apache.commons.httpclient.params.HttpMethodParams;
 import org.apache.commons.io.IOUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -45,7 +46,6 @@ class DiamondHttpClient {
         connectionManager.setParams(params);
         httpClient = new HttpClient(connectionManager);
         httpClient.setHostConfiguration(hostConfiguration);
-        setHostConfig();
     }
 
     private void setBasicAuth(String host, int port) {
@@ -63,7 +63,7 @@ class DiamondHttpClient {
         httpClient.getState().setCredentials(authScope, defaultcreds);
     }
 
-    private void setHostConfig() {
+    private void resetHostConfig() {
         String hostPort = diamondManagerConf.getDomainName();
         HostAndPort hostAndPort = HostAndPort.fromString(hostPort);
         int portOrDefault = hostAndPort.getPortOrDefault(Constants.DEFAULT_DIAMOND_SERVER_PORT);
@@ -94,7 +94,7 @@ class DiamondHttpClient {
         params.setSoTimeout((int) onceTimeOut);
         httpMethod.setParams(params);
 
-        setHostConfig();
+        resetHostConfig();
     }
 
     public HttpState getState() {
@@ -167,7 +167,7 @@ class DiamondHttpClient {
         postMethod.setParams(params);
 
         try {
-            setHostConfig();
+            resetHostConfig();
             int httpStatus = httpClient.executeMethod(postMethod);
             Set<String> updateDataIdsInBody = getUpdateDataIdsInBody(postMethod);
             return new CheckResult(httpStatus, updateDataIdsInBody);

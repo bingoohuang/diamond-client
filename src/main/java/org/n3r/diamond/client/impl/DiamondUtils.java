@@ -28,9 +28,7 @@ class DiamondUtils {
 
         if (log.isInfoEnabled() && modifiedDataIdsString != null) {
             String escaped = StringEscapeUtils.escapeJava(modifiedDataIdsString);
-            if (modifiedDataIdsString.startsWith("OK")) {
-                log.debug("detection respond {}", escaped);
-            } else {
+            if (!modifiedDataIdsString.startsWith("OK")) {
                 log.info("changes detected {}", escaped);
             }
         }

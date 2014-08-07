@@ -55,7 +55,7 @@ class ServerAddrMiner {
         if (!running) return;
         running = false;
 
-        if (readNameServerMode() != NameServerMode.Off) connectionManager.shutdown();
+        if (connectionManager != null) connectionManager.shutdown();
     }
 
     private void initHttpClient() {
@@ -86,13 +86,13 @@ class ServerAddrMiner {
         if (readClientServerAddress()) return;
         if (reloadServerAddresses()) return;
 
-        throw new RuntimeException("no diamond servers available");
+        log.warn("no diamond servers available");
     }
 
     private boolean readClientServerAddress() {
         List<String> serverAddress = readDiamondServersAddress();
         if (serverAddress.size() > 0) {
-            diamondManagerConf.setNameServers(serverAddress);
+            diamondManagerConf.setDiamondServers(serverAddress);
             return true;
         }
 
@@ -110,38 +110,38 @@ class ServerAddrMiner {
     }
 
     void saveServerAddrToLocal() {
-        List<String> domainNameList = new ArrayList<String>(diamondManagerConf.getNameServers());
+        List<String> domainNameList = new ArrayList<String>(diamondManagerConf.getDiamondServers());
         try {
-            FileUtils.writeLines(generateLocalFile(), domainNameList);
+            FileUtils.writeLines(getLocalServerAddressFile(), domainNameList);
         } catch (Exception e) {
             log.error("save diamond servers to local failed ", e.getMessage());
         }
     }
 
     private boolean reloadServerAddresses() {
-        log.info("read diamaond server addresses from local");
+        log.info("read diamond server addresses from local");
         try {
-            File serverAddressFile = generateLocalFile();
+            File serverAddressFile = getLocalServerAddressFile();
             if (!serverAddressFile.exists()) return false;
 
             List<String> addresses = FileUtils.readLines(serverAddressFile);
             for (String address : addresses) {
                 address = address.trim();
                 if (StringUtils.isNotEmpty(address))
-                    diamondManagerConf.getNameServers().add(address);
+                    diamondManagerConf.getDiamondServers().add(address);
             }
 
-            if (diamondManagerConf.getNameServers().size() > 0) {
-                log.info("successfully to read diamaond server addresses from local");
+            if (diamondManagerConf.getDiamondServers().size() > 0) {
+                log.info("successfully to read diamond server addresses from local");
                 return true;
             }
         } catch (Exception e) {
-            log.error("failed to read diamaond server addresses from local", e);
+            log.error("failed to read diamond server addresses from local", e);
         }
         return false;
     }
 
-    private File generateLocalFile() {
+    private File getLocalServerAddressFile() {
         String directory = diamondManagerConf.getFilePath();
 
         return new File(FilenameUtils.concat(directory, Constants.SERVER_ADDRESS));
@@ -170,7 +170,7 @@ class ServerAddrMiner {
             List<String> newDomainNameList = IOUtils.readLines(httpMethod.getResponseBodyAsStream());
             if (newDomainNameList.size() > 0) {
                 log.info("got diamond servers from NameServer");
-                diamondManagerConf.setNameServers(newDomainNameList);
+                diamondManagerConf.setDiamondServers(newDomainNameList);
                 return true;
             }
         } catch (Exception e) {

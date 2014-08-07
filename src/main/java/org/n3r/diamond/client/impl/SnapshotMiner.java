@@ -40,8 +40,6 @@ public class SnapshotMiner {
         try {
             File file = getOrCreateDiamondFile(diamondAxis, DIAMOND_STONE_EXT);
             FileUtils.writeStringToFile(file, defaultIfEmpty(content, ""), ENCODING);
-
-
         } catch (IOException e) {
             log.error("save snapshot error {} by {}", diamondAxis, content, e);
         }

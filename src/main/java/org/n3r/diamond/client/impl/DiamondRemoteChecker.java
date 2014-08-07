@@ -211,8 +211,11 @@ class DiamondRemoteChecker {
                         log.warn("get changed DataID list response HTTP State: " + httpStatus);
                         managerConfig.rotateToNextDomain();
                 }
+            } catch (NoNameServerAvailableException e) {
+                log.warn("error {}", e.getMessage());
+                break;
             } catch (Exception e) {
-                log.error("error {}", e.getMessage());
+                log.warn("error {}", e.getMessage());
                 managerConfig.rotateToNextDomain();
             }
         }

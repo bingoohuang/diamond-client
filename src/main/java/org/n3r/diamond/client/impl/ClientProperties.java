@@ -29,21 +29,12 @@ public class ClientProperties {
     }
 
     public static HostAndPort readNameServerAddress() {
-        NameServerMode nameServerMode = readNameServerMode();
-        switch (nameServerMode) {
-            case ByAddressProperty:
-                String nameServerAddress = properties.getProperty(Constants.NAME_SERVER_ADDRESS);
-                if (StringUtils.isNotEmpty(nameServerAddress)) {
-                    return HostAndPort.fromString(nameServerAddress).withDefaultPort(Constants.DEF_NAMESERVER_PORT);
-                }
-                log.warn("NameServerMode=ByAddressProperty without NameServer.address set");
-                return null;
-            case ByEtcHosts:
-                return HostAndPort.fromParts(Constants.DEF_DOMAINNAME, Constants.DEF_NAMESERVER_PORT);
-
+        String nameServerAddress = properties.getProperty(Constants.NAME_SERVER_ADDRESS);
+        if (StringUtils.isNotEmpty(nameServerAddress)) {
+            return HostAndPort.fromString(nameServerAddress).withDefaultPort(Constants.DEF_NAMESERVER_PORT);
         }
 
-        return null;
+        return HostAndPort.fromParts(Constants.DEF_DOMAINNAME, Constants.DEF_NAMESERVER_PORT);
     }
 
     public static List<String> readDiamondServersAddress() {
@@ -77,13 +68,13 @@ public class ClientProperties {
     }
 
     public static NameServerMode readNameServerMode() {
-        String property = properties.getProperty("NameServerMode", "Off");
-        try {
-            return NameServerMode.valueOf(property);
-        } catch (IllegalArgumentException e) {
-            log.warn("NameServerMode's value is set to Off because of unknown config {}", property);
-            return NameServerMode.Off;
-        }
+        String nameServerAddress = properties.getProperty(Constants.NAME_SERVER_ADDRESS);
+        if (StringUtils.isNotBlank(nameServerAddress)) return NameServerMode.ByAddressProperty;
+
+        String serverAddress = properties.getProperty(Constants.SERVER_ADDRESS);
+        if (StringUtils.isNotBlank(serverAddress)) return NameServerMode.Off;
+
+        return NameServerMode.ByEtcHosts;
     }
 
     public static String getBasicAuth() {

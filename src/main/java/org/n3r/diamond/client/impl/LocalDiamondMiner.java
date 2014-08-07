@@ -43,11 +43,9 @@ class LocalDiamondMiner {
             log.info("local changed, {}", diamondMeta.getDiamondAxis());
 
             return readFileContent(filePath);
-        } else {
-            log.debug("local not modified,{}", diamondMeta.getDiamondAxis());
-
-            return null;
         }
+
+        return null;
     }
 
     public String readLocal(DiamondMeta diamondMeta) {
@@ -58,14 +56,17 @@ class LocalDiamondMiner {
             return null;
         }
 
-        log.info("read local, {}", diamondMeta.getDiamondAxis());
+        log.debug("read local, {}", diamondMeta.getDiamondAxis());
 
         return readFileContent(filePath);
     }
 
     String readFileContent(String filePath) {
+        File file = new File(filePath);
+        if (!file.exists()) return null;
+
         try {
-            return FileUtils.readFileToString(new File(filePath), ENCODING);
+            return FileUtils.readFileToString(file, ENCODING);
         } catch (IOException e) {
             log.error("readfile content fail {}", e.getMessage());
             return null;
@@ -100,12 +101,12 @@ class LocalDiamondMiner {
                 String grandpaDir = getGrandpaDir(realPath);
                 if (!rootPath.equals(grandpaDir)
                         || !DIAMOND_STONE_EXT.equals("." + FilenameUtils.getExtension(realPath))) {
-                    log.error("invalid file monitored {} ", file);
+                    log.debug("invalid file monitored {} ", file);
                     return;
                 }
 
                 existFilesTimestamp.put(realPath, System.currentTimeMillis());
-                log.info("File {} Created", realPath);
+                log.debug("File {} Created", realPath);
             }
 
             @Override
@@ -115,8 +116,21 @@ class LocalDiamondMiner {
                 if (rootPath.equals(grandpaDir)
                         && DIAMOND_STONE_EXT.equals("." + FilenameUtils.getExtension(realPath))) {
                     existFilesTimestamp.remove(realPath);
-                    log.info("File {} Delete", realPath);
+                    log.debug("File {} Delete", realPath);
                 }
+            }
+
+            @Override
+            public void onFileChange(File file) {
+                String realPath = file.getAbsolutePath();
+                String grandpaDir = getGrandpaDir(realPath);
+                if (!rootPath.equals(grandpaDir)
+                        || !DIAMOND_STONE_EXT.equals("." + FilenameUtils.getExtension(realPath))) {
+                    return;
+                }
+
+                existFilesTimestamp.put(realPath, System.currentTimeMillis());
+                log.debug("File {} Created", realPath);
             }
 
         });
@@ -162,12 +176,12 @@ class LocalDiamondMiner {
                 String grandpaDir = getGrandpaDir(realPath);
                 if (!rootPath.equals(grandpaDir)
                         || !DIAMOND_STONE_EXT.equals("." + FilenameUtils.getExtension(realPath))) {
-                    log.error("invalid file monitored {} ", subFile);
+                    log.debug("invalid file monitored {} ", subFile);
                     continue;
                 }
 
                 existFilesTimestamp.put(realPath, System.currentTimeMillis());
-                log.info("{} file was added", realPath);
+                log.debug("{} file was added", realPath);
             }
         }
     }

@@ -20,14 +20,13 @@ public class DiamondManagerConf {
 
     private AtomicInteger domainNamePos = new AtomicInteger(0);
 
-    private volatile List<String> nameServers = new LinkedList<String>();
+    private volatile List<String> diamondServers = new LinkedList<String>();
 
     private int maxHostConnections = 1;
     private boolean connectionStaleCheckingEnabled = true;
     private int maxTotalConnections = 20;
     private int connectionTimeout = CONN_TIMEOUT;
     private int retrieveDataRetryTimes = Integer.MAX_VALUE / 10;
-
 
     private String filePath; // local data dir root
 
@@ -74,20 +73,20 @@ public class DiamondManagerConf {
     }
 
 
-    public List<String> getNameServers() {
-        return nameServers;
+    public List<String> getDiamondServers() {
+        return diamondServers;
     }
 
     public boolean hasDiamondServers() {
-        return nameServers.size() > 0;
+        return diamondServers.size() > 0;
     }
 
-    public void setNameServers(List<String> nameServers) {
-        this.nameServers = new LinkedList<String>(nameServers);
+    public void setDiamondServers(List<String> diamondServers) {
+        this.diamondServers = new LinkedList<String>(diamondServers);
     }
 
     public void addDomainName(String domainName) {
-        this.nameServers.add(domainName);
+        this.diamondServers.add(domainName);
     }
 
     public String getFilePath() {
@@ -128,12 +127,15 @@ public class DiamondManagerConf {
     }
 
     public String getDomainName() {
-        return nameServers.get(domainNamePos.get());
+        if (diamondServers.size()  == 0)
+            throw new NoNameServerAvailableException("no name server available!");
+
+        return diamondServers.get(domainNamePos.get());
     }
 
     public void randomDomainNamePos() {
-        if (!nameServers.isEmpty()) {
-            domainNamePos.set(new Random().nextInt(nameServers.size()));
+        if (!diamondServers.isEmpty()) {
+            domainNamePos.set(new Random().nextInt(diamondServers.size()));
             log.info("random DiamondServer to：" + getDomainName());
         }
     }
@@ -142,13 +144,13 @@ public class DiamondManagerConf {
         int index = domainNamePos.incrementAndGet();
         if (index < 0) index = -index;
 
-        int domainNameCount = nameServers.size();
+        int domainNameCount = diamondServers.size();
         if (domainNameCount == 0) {
             log.error("diamond server list is empty, please contact administrator");
             return;
         }
 
-        if (nameServers.size() > 0) {
+        if (diamondServers.size() > 0) {
             domainNamePos.set(index % domainNameCount);
             log.warn("rotate diamond server to " + getDomainName());
         }
