@@ -55,7 +55,6 @@ class DiamondRemoteChecker {
     public void checkRemote() {
         Set<String> updateDataIdGroupPairs = checkUpdateDataIds(managerConfig.getReceiveWaitTime());
         if (null == updateDataIdGroupPairs || updateDataIdGroupPairs.size() == 0) {
-            log.debug("no DataID changed");
             return;
         }
 

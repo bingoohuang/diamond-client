@@ -2,7 +2,11 @@ package org.n3r.diamond.client;
 
 import org.n3r.diamond.client.impl.Constants;
 import org.n3r.diamond.client.impl.DiamondSubscriber;
-import org.n3r.diamond.client.impl.DiamondSubstituter;
+import org.n3r.diamond.client.impl.DiamondUtils;
+import org.n3r.diamond.client.security.Pbe;
+
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 public class DiamondManager {
     private DiamondSubscriber diamondSubscriber = DiamondSubscriber.getInstance();
@@ -29,7 +33,8 @@ public class DiamondManager {
     }
 
     public String getDiamond() {
-        return diamondSubscriber.getDiamond(diamondAxis, timeoutMillis);
+        String original = diamondSubscriber.getDiamond(diamondAxis, timeoutMillis);
+        return DiamondUtils.tryDecrypt(original, diamondAxis.getDataId());
     }
 
     public Object getCache() {

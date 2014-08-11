@@ -8,6 +8,7 @@ import com.google.common.collect.ImmutableMap;
 import org.apache.commons.lang3.StringUtils;
 import org.n3r.diamond.client.impl.Constants;
 import org.n3r.diamond.client.impl.DiamondSubstituter;
+import org.n3r.diamond.client.impl.DiamondUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -137,18 +138,9 @@ public class DiamondMiner {
 
 
     public static Properties getProperties(String key) {
-        Properties properties = new Properties();
-        String string = getString(key);
-        if (string != null) {
-            try {
-                properties.load(new StringReader(string));
-            } catch (IOException e) {
-                log.error("load string to Properties failed " + string, e);
-                throw new DiamondException.WrongType(e);
-            }
-        }
-        return properties;
+        return getProperties(Constants.DEFAULT_GROUP, key);
     }
+
 
     public static Properties getProperties(String group, String dataId) {
         Properties properties = new Properties();
@@ -156,11 +148,12 @@ public class DiamondMiner {
         if (string != null) {
             try {
                 properties.load(new StringReader(string));
+
             } catch (IOException e) {
                 // ignore
             }
         }
-        return properties;
+        return DiamondUtils.tryDecrypt(properties, dataId);
     }
 
     private static Pattern durationPattern = Pattern
