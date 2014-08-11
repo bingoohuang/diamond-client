@@ -71,8 +71,7 @@ public class DiamondUtils {
     public static Properties tryDecrypt(Properties properties, String dataId) {
         Properties newProperties = new Properties();
 
-        for(Object okey : properties.keySet() ) {
-            String key = (String) okey;
+        for(String key : properties.stringPropertyNames() ) {
             String property = properties.getProperty(key);
             newProperties.put(key, tryDecrypt(property, key));
         }
