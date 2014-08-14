@@ -4,8 +4,6 @@ import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import com.google.common.base.Objects;
-import com.google.common.collect.ImmutableMap;
-import org.apache.commons.lang3.StringUtils;
 import org.n3r.diamond.client.impl.Constants;
 import org.n3r.diamond.client.impl.DiamondSubstituter;
 import org.n3r.diamond.client.impl.DiamondUtils;
@@ -14,19 +12,11 @@ import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.io.StringReader;
-import java.math.BigDecimal;
 import java.util.List;
-import java.util.Map;
 import java.util.Properties;
-import java.util.concurrent.TimeUnit;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
 public class DiamondMiner {
     private static Logger log = LoggerFactory.getLogger(DiamondMiner.class);
-
-    static Pattern bytesPattern = Pattern.compile("([\\d.]+)([GMK]B)", Pattern.CASE_INSENSITIVE);
-    static Map<String, Integer> powerMap = ImmutableMap.of("GB", 3, "MB", 2, "KB", 1);
 
     public static long getBytes(String key) {
         return getBytes(Constants.DEFAULT_GROUP, key);
@@ -35,17 +25,7 @@ public class DiamondMiner {
     public static long getBytes(String group, String dataId) {
         String stone = getStone(group, dataId);
 
-        long returnValue = -1;
-        Matcher matcher = bytesPattern.matcher(stone);
-
-        if (matcher.find()) {
-            String number = matcher.group(1);
-            int pow = powerMap.get(matcher.group(2).toUpperCase());
-            BigDecimal bytes = new BigDecimal(number);
-            bytes = bytes.multiply(BigDecimal.valueOf(1024).pow(pow));
-            returnValue = bytes.longValue();
-        }
-        return returnValue;
+        return BytesSize.parseBytes(stone);
     }
 
     public static JSONObject getJSON(String key) {
@@ -156,38 +136,7 @@ public class DiamondMiner {
         return DiamondUtils.tryDecrypt(properties, dataId);
     }
 
-    private static Pattern durationPattern = Pattern
-            .compile("((\\d+)[dD])?\\s*((\\d+)[hH])?\\s*((\\d+)[mM])?\\s*((\\d+)[Ss])?");
 
-    public static long getDuration(String duration, TimeUnit timeUnit) {
-        Matcher m = durationPattern.matcher(duration);
-        m.find();
-
-        long miliSeconds = 0;
-
-        TimeUnit millisecondsTimeUnit = TimeUnit.MILLISECONDS;
-        if (StringUtils.isNotEmpty(m.group(2))) {
-            int days = Integer.parseInt(m.group(2));
-            miliSeconds += millisecondsTimeUnit.convert(days, TimeUnit.DAYS);
-        }
-
-        if (StringUtils.isNotEmpty(m.group(4))) {
-            int hours = Integer.parseInt(m.group(4));
-            miliSeconds += millisecondsTimeUnit.convert(hours, TimeUnit.HOURS);
-        }
-
-        if (StringUtils.isNotEmpty(m.group(6))) {
-            int minutes = Integer.parseInt(m.group(6));
-            miliSeconds += millisecondsTimeUnit.convert(minutes, TimeUnit.MINUTES);
-        }
-
-        if (StringUtils.isNotEmpty(m.group(8))) {
-            int seconds = Integer.parseInt(m.group(8));
-            miliSeconds += millisecondsTimeUnit.convert(seconds, TimeUnit.SECONDS);
-        }
-
-        return timeUnit.convert(miliSeconds, millisecondsTimeUnit);
-    }
 
     public static <T> T getCache(String key) {
         return getCache(Constants.DEFAULT_GROUP, key);

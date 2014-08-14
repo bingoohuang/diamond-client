@@ -18,7 +18,7 @@ public class MockDiamondServer {
 
     public static void tearDownMockServer() {
         mocks.clear();
-        DiamondSubscriber.getInstance().close();
+//        DiamondSubscriber.getInstance().close();
         testMode = false;
     }
 
