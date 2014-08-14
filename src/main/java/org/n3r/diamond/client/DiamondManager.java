@@ -37,7 +37,13 @@ public class DiamondManager {
         return diamondSubscriber.getCache(diamondAxis, timeoutMillis);
     }
 
+    public Object getDynamicCache(Object... dynamics) {
+        return diamondSubscriber.getCache(diamondAxis, timeoutMillis, dynamics);
+    }
+
     public void setTimeoutMillis(int timeoutMillis) {
         this.timeoutMillis = timeoutMillis;
     }
+
+
 }

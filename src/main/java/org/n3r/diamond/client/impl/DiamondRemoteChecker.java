@@ -3,6 +3,7 @@ package org.n3r.diamond.client.impl;
 import com.google.common.base.Optional;
 import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
+import com.google.common.util.concurrent.MoreExecutors;
 import org.apache.commons.lang3.StringUtils;
 import org.n3r.diamond.client.DiamondListener;
 import org.n3r.diamond.client.DiamondStone;
@@ -11,6 +12,9 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.Set;
+import java.util.concurrent.Callable;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 
 class DiamondRemoteChecker {
@@ -75,13 +79,13 @@ class DiamondRemoteChecker {
 
     private void receiveDiamondContent(final DiamondMeta diamondMeta) {
         try {
-            retriveRemoteAndInvokeListeners(diamondMeta);
+            retrieveRemoteAndInvokeListeners(diamondMeta);
         } catch (Exception e) {
-            log.error("retriveRemoteAndInvokeListeners error", e.getMessage());
+            log.error("retrieveRemoteAndInvokeListeners error", e.getMessage());
         }
     }
 
-    private void retriveRemoteAndInvokeListeners(DiamondMeta diamondMeta) {
+    private void retrieveRemoteAndInvokeListeners(DiamondMeta diamondMeta) {
         String diamondContent = retrieveRemote(diamondMeta.getDiamondAxis(),
                 managerConfig.getReceiveWaitTime(), false);
         // if (null == diamondContent) return;
@@ -95,34 +99,31 @@ class DiamondRemoteChecker {
     }
 
 
-    void onDiamondChanged(final DiamondMeta diamondMeta, final String content) {
+    Future<Object> onDiamondChanged(final DiamondMeta diamondMeta, final String content) {
         final DiamondStone diamondStone = new DiamondStone();
         diamondStone.setContent(content);
         diamondStone.setDiamondAxis(diamondMeta.getDiamondAxis());
         diamondMeta.incSuccCounterAndGet();
 
-        Runnable command = new Runnable() {
-            public void run() {
+        Callable<Object> command = new Callable<Object>() {
+            public Object call() {
                 try {
                     diamondSubscriber.saveSnapshot(diamondStone.getDiamondAxis(), content);
-                    diamondCache.saveDiamondCache(diamondStone.getDiamondAxis(), content);
                     diamondAllListener.accept(diamondStone);
+                    return diamondCache.updateDiamondCacheOnChange(diamondStone.getDiamondAxis(), content);
                 } catch (Throwable t) {
                     log.error("onDiamondChanged error，{}", diamondMeta.getDiamondAxis(), t);
                 }
+                return  null;
             }
         };
 
-        if (null != diamondAllListener.getExecutor()) {
-            diamondAllListener.getExecutor().execute(command);
-        } else {
-            command.run();
-        }
+        ExecutorService executor = diamondAllListener.getExecutor();
+        if (executor == null) executor = MoreExecutors.sameThreadExecutor();
+        return executor.submit(command);
     }
 
     String retrieveRemote(DiamondStone.DiamondAxis diamondAxis, long timeout, boolean useContentCache) {
-        if (MockDiamondServer.isTestMode()) return MockDiamondServer.getDiamond(diamondAxis);
-
         diamondSubscriber.start();
 
         if (useContentCache) {

@@ -57,5 +57,5 @@ public interface Constants {
     String WORD_SEPARATOR = Character.toString((char) 2);
 
     String DIAMOND_STONE_EXT = ".diamond";
-    String DIAMOND_CACHE_EXT = ".cache";
+    String DIAMOND_CACHE_EXT = ".cache.";
 }

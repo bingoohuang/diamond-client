@@ -1,16 +1,9 @@
 package org.n3r.diamond.client;
 
-import java.util.concurrent.Executor;
-
 public class DemoDiamond {
     public static void main(String[] args) {
         DiamondManager diamondManager = new DiamondManager("foo");
-        diamondManager.addDiamondListener(new DiamondListener() {
-            @Override
-            public Executor getExecutor() {
-                return null;
-            }
-
+        diamondManager.addDiamondListener(new DiamondListenerAdapter() {
             @Override
             public void accept(DiamondStone diamondStone) {
                 System.out.println("DiamondListener:" + diamondStone.getContent());

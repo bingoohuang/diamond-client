@@ -2,17 +2,20 @@ package org.n3r.diamond.client.impl;
 
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.serializer.SerializerFeature;
+import com.google.common.base.Optional;
+import com.google.common.primitives.UnsignedLongs;
 import org.apache.commons.io.FileUtils;
 import org.n3r.diamond.client.DiamondStone;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.File;
+import java.io.FilenameFilter;
 import java.io.IOException;
 
-import static org.n3r.diamond.client.impl.Constants.*;
 import static java.io.File.separator;
 import static org.apache.commons.lang3.StringUtils.defaultIfEmpty;
+import static org.n3r.diamond.client.impl.Constants.*;
 
 public class SnapshotMiner {
     private Logger log = LoggerFactory.getLogger(SnapshotMiner.class);
@@ -51,7 +54,7 @@ public class SnapshotMiner {
         removeSnapshot(diamondAxis, DIAMOND_STONE_EXT);
     }
 
-    public void removeSnapshot(DiamondStone.DiamondAxis diamondAxis, String extension) {
+    private void removeSnapshot(DiamondStone.DiamondAxis diamondAxis, String extension) {
         String path = dir + separator + diamondAxis.getGroup();
         File dir = new File(path);
         if (!dir.exists()) return;
@@ -60,6 +63,25 @@ public class SnapshotMiner {
         if (!file.exists()) return;
 
         file.delete();
+
+        if (dir.list().length == 0) dir.delete();
+    }
+
+    private void removeAllSnapshot(DiamondStone.DiamondAxis diamondAxis, final String extension) {
+        String path = dir + separator + diamondAxis.getGroup();
+        File dir = new File(path);
+        if (!dir.exists()) return;
+
+        final String prefix = diamondAxis.getDataId() + extension;
+        File[] files = dir.listFiles(new FilenameFilter() {
+            @Override
+            public boolean accept(File dir, String name) {
+                return name.startsWith(prefix);
+            }
+        });
+
+        for (File file : files)
+            file.delete();
 
         if (dir.list().length == 0) dir.delete();
     }
@@ -75,22 +97,23 @@ public class SnapshotMiner {
         return file;
     }
 
-    public void saveCache(DiamondStone.DiamondAxis diamondAxis, Object diamondCache) {
+    public void saveCache(DiamondStone.DiamondAxis diamondAxis, Object diamondCache, int dynamicsHasCode) {
         String json = JSON.toJSONString(diamondCache, SerializerFeature.WriteClassName);
         try {
-            File file = getOrCreateDiamondFile(diamondAxis, DIAMOND_CACHE_EXT);
+            File file = getOrCreateDiamondFile(diamondAxis, getDynamicCacheExtension(dynamicsHasCode));
             FileUtils.writeStringToFile(file, json, ENCODING);
         } catch (IOException e) {
             log.error("save {} cache snaptshot error", diamondAxis, e);
         }
     }
 
-    public Object getCache(DiamondStone.DiamondAxis diamondAxis) {
-        try {
-            String fileContent = getFileContent(diamondAxis, DIAMOND_CACHE_EXT);
-            if (fileContent == null) return null;
 
-            return JSON.parse(fileContent);
+    public Optional<Object> getCache(DiamondStone.DiamondAxis diamondAxis, int dynamicsHasCode) {
+        try {
+            String fileContent = getFileContent(diamondAxis, getDynamicCacheExtension(dynamicsHasCode));
+            if (fileContent == null) return Optional.absent();
+
+            return Optional.fromNullable(JSON.parse(fileContent));
         } catch (IOException e) {
             log.error("read cache snapshot {} failed {}", e.getMessage());
         }
@@ -98,7 +121,16 @@ public class SnapshotMiner {
         return null;
     }
 
-    public void removeCache(DiamondStone.DiamondAxis diamondAxis) {
-        removeSnapshot(diamondAxis, DIAMOND_CACHE_EXT);
+    public void removeCache(DiamondStone.DiamondAxis diamondAxis, int dynamicsHasCode) {
+        removeSnapshot(diamondAxis, getDynamicCacheExtension(dynamicsHasCode));
+    }
+
+    public void removeAllCache(DiamondStone.DiamondAxis diamondAxis) {
+        removeAllSnapshot(diamondAxis, DIAMOND_CACHE_EXT);
+    }
+
+
+    private String getDynamicCacheExtension(int dynamicsHasCode) {
+        return DIAMOND_CACHE_EXT + UnsignedLongs.toString(dynamicsHasCode);
     }
 }

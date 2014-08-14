@@ -12,7 +12,7 @@ public class DemoUpdater implements Callable<DemoCacheBean>, ParamsAppliable {
 
     @Override
     public DemoCacheBean call() {
-        sleepMillis(10 * 1000);
+        Utils.sleepMillis(3500);
         String s = " at " + new SimpleDateFormat("yyyy-MM-dd HH:mm:ss.SSS").format(new Date());
         System.out.println(">>>DemoUpdater:" + s);
         return new DemoCacheBean(param + s);
@@ -23,12 +23,5 @@ public class DemoUpdater implements Callable<DemoCacheBean>, ParamsAppliable {
         this.param = Arrays.toString(params);
     }
 
-    public static void sleepMillis(int millis) {
-        try {
-            Thread.sleep(millis);
-        } catch (InterruptedException e) {
-            // Ignore
-        }
-    }
 }
 

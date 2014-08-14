@@ -5,10 +5,7 @@ import org.n3r.diamond.client.DiamondListener;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.ConcurrentMap;
-import java.util.concurrent.CopyOnWriteArrayList;
-import java.util.concurrent.Executor;
+import java.util.concurrent.*;
 
 
 class DiamondAllListener implements DiamondListener {
@@ -81,7 +78,7 @@ class DiamondAllListener implements DiamondListener {
         if (listenerList != null) listenerList.remove(addListener);
     }
 
-    public Executor getExecutor() {
+    public ExecutorService getExecutor() {
         return null;
     }
 }

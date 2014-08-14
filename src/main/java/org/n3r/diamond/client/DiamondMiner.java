@@ -189,14 +189,22 @@ public class DiamondMiner {
         return timeUnit.convert(miliSeconds, millisecondsTimeUnit);
     }
 
-    @SuppressWarnings("unchecked")
     public static <T> T getCache(String key) {
-        return (T) new DiamondManager(key).getCache();
+        return getCache(Constants.DEFAULT_GROUP, key);
     }
 
     @SuppressWarnings("unchecked")
     public static <T> T getCache(String group, String dataId) {
         return (T) new DiamondManager(group, dataId).getCache();
+    }
+
+    public static <T> T getDynamicCache(String key, Object... dynamics) {
+        return getDynamicStoneCache(Constants.DEFAULT_GROUP, key, dynamics);
+    }
+
+    @SuppressWarnings("unchecked")
+    public static <T> T getDynamicStoneCache(String group, String dataId, Object... dynamics) {
+        return  (T) new DiamondManager(group, dataId).getDynamicCache(dynamics);
     }
 
     public static String getString(String key) {

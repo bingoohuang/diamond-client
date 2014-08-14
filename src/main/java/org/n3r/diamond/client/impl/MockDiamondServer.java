@@ -4,6 +4,7 @@ import org.n3r.diamond.client.DiamondStone;
 
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.Future;
 
 
 public class MockDiamondServer {
@@ -21,6 +22,16 @@ public class MockDiamondServer {
         testMode = false;
     }
 
+    public static Future<Object> updateDiamond(String dataId, String configInfo) {
+        return updateDiamond(Constants.DEFAULT_GROUP, dataId, configInfo);
+    }
+
+    public static Future<Object> updateDiamond(String group, String dataId, String configInfo) {
+        DiamondSubscriber diamondSubscriber = DiamondSubscriber.getInstance();
+        DiamondRemoteChecker remoteChecker = diamondSubscriber.getDiamondRemoteChecker();
+        DiamondStone.DiamondAxis diamondAxis = DiamondStone.DiamondAxis.makeAxis(group, dataId);
+        return remoteChecker.onDiamondChanged(diamondSubscriber.getCachedMeta(diamondAxis), configInfo);
+    }
 
     public static String getDiamond(DiamondStone.DiamondAxis diamondAxis) {
         return mocks.get(diamondAxis);

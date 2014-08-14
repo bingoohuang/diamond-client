@@ -134,6 +134,9 @@ public class DiamondSubscriber implements Closeable {
         log.warn("end to close DiamondSubscriber");
     }
 
+    public DiamondRemoteChecker getDiamondRemoteChecker() {
+        return diamondRemoteChecker;
+    }
 
     public String retrieveDiamondLocalAndRemote(DiamondStone.DiamondAxis diamondAxis, long timeout) {
         DiamondMeta diamondMeta = getCachedMeta(diamondAxis);
@@ -163,6 +166,8 @@ public class DiamondSubscriber implements Closeable {
     }
 
     public String getDiamond(DiamondStone.DiamondAxis diamondAxis, long timeout) {
+        if (MockDiamondServer.isTestMode()) return MockDiamondServer.getDiamond(diamondAxis);
+
         try {
             String result = retrieveDiamondLocalAndRemote(diamondAxis, timeout);
             if (StringUtils.isNotBlank(result)) return result;
@@ -244,10 +249,10 @@ public class DiamondSubscriber implements Closeable {
         return probeModifyBuilder.toString();
     }
 
-    public Object getCache(DiamondStone.DiamondAxis diamondAxis, int timeoutMillis) {
+    public Object getCache(DiamondStone.DiamondAxis diamondAxis, int timeoutMillis, Object... dynamics) {
         String diamondContent = getDiamond(diamondAxis, timeoutMillis);
         if (diamondContent == null) return null;
 
-        return diamondCache.getCache(diamondAxis, diamondContent);
+        return diamondCache.getCache(diamondAxis, diamondContent, dynamics);
     }
 }
