@@ -136,7 +136,7 @@ public class DiamondSubscriber implements Closeable {
 
 
     public String retrieveDiamondLocalAndRemote(DiamondStone.DiamondAxis diamondAxis, long timeout) {
-        DiamondMeta diamondMeta = getCacheData(diamondAxis);
+        DiamondMeta diamondMeta = getCachedMeta(diamondAxis);
         // local first
         try {
             String localConfig = localDiamondMiner.readLocal(diamondMeta);
@@ -178,7 +178,7 @@ public class DiamondSubscriber implements Closeable {
 
     public String getSnapshot(DiamondStone.DiamondAxis diamondAxis) {
         try {
-            DiamondMeta diamondMeta = getCacheData(diamondAxis);
+            DiamondMeta diamondMeta = getCachedMeta(diamondAxis);
             String diamondContent = snapshotMiner.getSnapshot(diamondAxis);
             if (diamondContent != null && diamondMeta != null) diamondMeta.incSuccCounterAndGet();
 
@@ -205,7 +205,7 @@ public class DiamondSubscriber implements Closeable {
         }
     }
 
-    public DiamondMeta getCacheData(DiamondStone.DiamondAxis diamondAxis) {
+    public DiamondMeta getCachedMeta(DiamondStone.DiamondAxis diamondAxis) {
         return metaCache.getUnchecked(diamondAxis);
     }
 

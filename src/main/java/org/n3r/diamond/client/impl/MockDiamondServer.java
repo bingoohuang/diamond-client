@@ -7,9 +7,9 @@ import java.util.concurrent.ConcurrentHashMap;
 
 
 public class MockDiamondServer {
-    private static ConcurrentHashMap<DiamondStone.DiamondAxis, String>
+    static ConcurrentHashMap<DiamondStone.DiamondAxis, String>
             mocks = new ConcurrentHashMap<DiamondStone.DiamondAxis, String>();
-    private static volatile boolean testMode = false;
+    static volatile boolean testMode = false;
 
     public static void setUpMockServer() {
         testMode = true;
@@ -44,7 +44,7 @@ public class MockDiamondServer {
     }
 
     private static void setConfigInfo(DiamondStone.DiamondAxis diamondAxis, String configInfo) {
-        mocks.putIfAbsent(diamondAxis, configInfo);
+        mocks.put(diamondAxis, configInfo);
     }
 
     public static boolean isTestMode() {

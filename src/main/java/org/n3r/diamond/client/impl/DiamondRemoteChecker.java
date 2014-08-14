@@ -1,5 +1,6 @@
 package org.n3r.diamond.client.impl;
 
+import com.google.common.base.Optional;
 import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
 import org.apache.commons.lang3.StringUtils;
@@ -16,9 +17,9 @@ class DiamondRemoteChecker {
     private final DiamondCache diamondCache;
     private Logger log = LoggerFactory.getLogger(DiamondRemoteChecker.class);
 
-    private Cache<DiamondStone.DiamondAxis, String> contentCache = CacheBuilder.newBuilder()
+    private Cache<DiamondStone.DiamondAxis, Optional<String>> contentCache = CacheBuilder.newBuilder()
             .expireAfterAccess(15, TimeUnit.MINUTES)
-            .maximumSize(1000)
+            .maximumSize(10000)
             .build();
 
     private volatile DiamondAllListener diamondAllListener = new DiamondAllListener();
@@ -65,7 +66,8 @@ class DiamondRemoteChecker {
             String freshDataId = freshDataIdGroupPair.substring(0, middleIndex);
             String freshGroup = freshDataIdGroupPair.substring(middleIndex + 1);
 
-            DiamondMeta diamondMeta = diamondSubscriber.getCacheData(DiamondStone.DiamondAxis.makeAxis(freshGroup, freshDataId));
+            DiamondStone.DiamondAxis diamondAxis = DiamondStone.DiamondAxis.makeAxis(freshGroup, freshDataId);
+            DiamondMeta diamondMeta = diamondSubscriber.getCachedMeta(diamondAxis);
 
             receiveDiamondContent(diamondMeta);
         }
@@ -82,7 +84,7 @@ class DiamondRemoteChecker {
     private void retriveRemoteAndInvokeListeners(DiamondMeta diamondMeta) {
         String diamondContent = retrieveRemote(diamondMeta.getDiamondAxis(),
                 managerConfig.getReceiveWaitTime(), false);
-        if (null == diamondContent) return;
+        // if (null == diamondContent) return;
 
         if (null == diamondAllListener) {
             log.warn("null == configInfoListenable");
@@ -124,8 +126,8 @@ class DiamondRemoteChecker {
         diamondSubscriber.start();
 
         if (useContentCache) {
-            String content = contentCache.getIfPresent(diamondAxis);
-            if (content != null) return content;
+            Optional<String> optional = contentCache.getIfPresent(diamondAxis);
+            if (optional != null) return optional.orNull();
         }
 
         long costTime = 0;
@@ -149,7 +151,7 @@ class DiamondRemoteChecker {
             costTime += onceTimeOut;
 
             try {
-                DiamondMeta diamondMeta = diamondSubscriber.getCacheData(diamondAxis);
+                DiamondMeta diamondMeta = diamondSubscriber.getCachedMeta(diamondAxis);
                 DiamondHttpClient.GetDiamondResult getDiamondResult;
                 getDiamondResult = httpClient.getDiamond(uri, useContentCache, diamondMeta, onceTimeOut);
 
@@ -163,7 +165,7 @@ class DiamondRemoteChecker {
                         diamondMeta.setMd5(Constants.NULL);
                         diamondSubscriber.removeSnapshot(diamondAxis);
                         diamondCache.removeCacheSnapshot(diamondAxis);
-                        contentCache.invalidate(diamondAxis);
+                        contentCache.put(diamondAxis, Optional.<String>absent());
                         return null;
                     case Constants.SC_SERVICE_UNAVAILABLE:
                         managerConfig.rotateToNextDomain();
@@ -239,7 +241,7 @@ class DiamondRemoteChecker {
 
         changeSpacingInterval(httpMethod);
 
-        contentCache.put(diamondAxis, diamondContent);
+        contentCache.put(diamondAxis, Optional.fromNullable(diamondContent));
 
         log.debug("received {}, content={}", diamondAxis, diamondContent);
 

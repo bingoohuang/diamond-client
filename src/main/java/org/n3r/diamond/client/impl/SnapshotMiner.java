@@ -37,6 +37,8 @@ public class SnapshotMiner {
     }
 
     public void saveSnaptshot(DiamondStone.DiamondAxis diamondAxis, String content) {
+        if (content == null) return;
+
         try {
             File file = getOrCreateDiamondFile(diamondAxis, DIAMOND_STONE_EXT);
             FileUtils.writeStringToFile(file, defaultIfEmpty(content, ""), ENCODING);

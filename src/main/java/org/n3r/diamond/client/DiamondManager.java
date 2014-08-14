@@ -3,10 +3,6 @@ package org.n3r.diamond.client;
 import org.n3r.diamond.client.impl.Constants;
 import org.n3r.diamond.client.impl.DiamondSubscriber;
 import org.n3r.diamond.client.impl.DiamondUtils;
-import org.n3r.diamond.client.security.Pbe;
-
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
 public class DiamondManager {
     private DiamondSubscriber diamondSubscriber = DiamondSubscriber.getInstance();
@@ -21,7 +17,7 @@ public class DiamondManager {
     public DiamondManager(String group, String dataId) {
         diamondAxis = DiamondStone.DiamondAxis.makeAxis(group, dataId);
 
-        diamondSubscriber.getCacheData(diamondAxis);
+        diamondSubscriber.getCachedMeta(diamondAxis);
     }
 
     public void addDiamondListener(DiamondListener diamondListener) {

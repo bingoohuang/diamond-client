@@ -188,7 +188,8 @@ class DiamondHttpClient {
     }
 
     public void shutdown() {
-        connectionManager.shutdown();
+        if (connectionManager != null)
+            connectionManager.shutdown();
     }
 
     public static class GetDiamondResult {
