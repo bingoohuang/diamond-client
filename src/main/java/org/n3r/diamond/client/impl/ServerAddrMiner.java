@@ -1,5 +1,7 @@
 package org.n3r.diamond.client.impl;
 
+import com.google.common.collect.Lists;
+import com.google.common.collect.Sets;
 import com.google.common.net.HostAndPort;
 import org.apache.commons.httpclient.*;
 import org.apache.commons.httpclient.methods.GetMethod;
@@ -14,7 +16,9 @@ import org.slf4j.LoggerFactory;
 
 import java.io.File;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 
@@ -127,8 +131,10 @@ class ServerAddrMiner {
             List<String> addresses = FileUtils.readLines(serverAddressFile);
             for (String address : addresses) {
                 address = address.trim();
-                if (StringUtils.isNotEmpty(address))
-                    diamondManagerConf.getDiamondServers().add(address);
+                if (StringUtils.isNotEmpty(address)) {
+                    List<String> diamondServers = diamondManagerConf.getDiamondServers();
+                    if (!diamondServers.contains(address)) diamondServers.add(address);
+                }
             }
 
             if (diamondManagerConf.getDiamondServers().size() > 0) {
@@ -170,7 +176,8 @@ class ServerAddrMiner {
             List<String> newDomainNameList = IOUtils.readLines(httpMethod.getResponseBodyAsStream());
             if (newDomainNameList.size() > 0) {
                 log.info("got diamond servers from NameServer");
-                diamondManagerConf.setDiamondServers(newDomainNameList);
+                Set<String> set = Sets.newHashSet(newDomainNameList);
+                diamondManagerConf.setDiamondServers(Lists.newArrayList(set));
                 return true;
             }
         } catch (Exception e) {

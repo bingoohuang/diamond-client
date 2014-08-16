@@ -134,26 +134,27 @@ public class DiamondManagerConf {
     }
 
     public void randomDomainNamePos() {
-        if (!diamondServers.isEmpty()) {
-            domainNamePos.set(new Random().nextInt(diamondServers.size()));
+        int diamondServerNum = diamondServers.size();
+        if (diamondServerNum > 1) {
+            domainNamePos.set(new Random().nextInt(diamondServerNum));
             log.info("random DiamondServer to：" + getDomainName());
         }
     }
 
     synchronized void rotateToNextDomain() {
-        int index = domainNamePos.incrementAndGet();
-        if (index < 0) index = -index;
-
-        int domainNameCount = diamondServers.size();
-        if (domainNameCount == 0) {
+        int diamondServerNum = diamondServers.size();
+        if (diamondServerNum == 0) {
             log.error("diamond server list is empty, please contact administrator");
             return;
         }
 
-        if (diamondServers.size() > 0) {
-            domainNamePos.set(index % domainNameCount);
-            log.warn("rotate diamond server to " + getDomainName());
-        }
+        if (diamondServerNum <= 1) return;
+
+        int index = domainNamePos.incrementAndGet();
+        if (index < 0) index = -index;
+        domainNamePos.set(index % diamondServerNum);
+
+        log.warn("rotate diamond server to " + getDomainName());
     }
 
 }

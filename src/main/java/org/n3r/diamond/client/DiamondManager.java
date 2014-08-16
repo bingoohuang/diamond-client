@@ -8,7 +8,7 @@ public class DiamondManager {
     private DiamondSubscriber diamondSubscriber = DiamondSubscriber.getInstance();
 
     private final DiamondStone.DiamondAxis diamondAxis;
-    private int timeoutMillis = 10000;  // timeout in millis of network
+    private int timeoutMillis = 3000;  // timeout in millis of network
 
     public DiamondManager(String dataId) {
         this(Constants.DEFAULT_GROUP, dataId);

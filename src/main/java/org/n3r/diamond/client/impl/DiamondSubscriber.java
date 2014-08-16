@@ -54,7 +54,6 @@ public class DiamondSubscriber implements Closeable {
         diamondRemoteChecker.addDiamondListener(diamondAxis, diamondListener);
     }
 
-
     public void removeDiamondListener(DiamondStone.DiamondAxis diamondAxis, DiamondListener diamondListener) {
         diamondRemoteChecker.removeDiamondListener(diamondAxis, diamondListener);
     }

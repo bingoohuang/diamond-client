@@ -71,10 +71,8 @@ class DiamondHttpClient {
         String hostText = hostAndPort.getHostText();
         hostConfiguration.setHost(hostText, portOrDefault);
 
-
         setBasicAuth(hostText, portOrDefault);
     }
-
 
     private void configureHttpMethod(HttpMethod httpMethod, boolean useContentCache,
                                      DiamondMeta diamondMeta, long onceTimeOut) {

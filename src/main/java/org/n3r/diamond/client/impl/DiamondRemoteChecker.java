@@ -114,7 +114,7 @@ class DiamondRemoteChecker {
                 } catch (Throwable t) {
                     log.error("onDiamondChanged error，{}", diamondMeta.getDiamondAxis(), t);
                 }
-                return  null;
+                return null;
             }
         };
 
@@ -140,7 +140,11 @@ class DiamondRemoteChecker {
         int totalRetryTimes = managerConfig.getRetrieveDataRetryTimes();
         int triedTimes = 0;
 
+        Exception lastException = null; // for reduce logs
+        int lastHttpStatus = -1;
         while (0 == timeout || timeout > costTime) {
+            if (triedTimes > 0) managerConfig.rotateToNextDomain();
+
             if (++triedTimes > totalRetryTimes + 1) {
                 log.warn("reached the max retry times");
                 break;
@@ -156,7 +160,8 @@ class DiamondRemoteChecker {
                 DiamondHttpClient.GetDiamondResult getDiamondResult;
                 getDiamondResult = httpClient.getDiamond(uri, useContentCache, diamondMeta, onceTimeOut);
 
-                switch (getDiamondResult.getHttpStatus()) {
+                int httpStatus = getDiamondResult.getHttpStatus();
+                switch (httpStatus) {
                     case Constants.SC_OK:
                         return onSuccess(diamondAxis, diamondMeta, getDiamondResult);
                     case Constants.SC_NOT_MODIFIED:
@@ -168,19 +173,18 @@ class DiamondRemoteChecker {
                         diamondCache.removeCacheSnapshot(diamondAxis);
                         contentCache.put(diamondAxis, Optional.<String>absent());
                         return null;
-                    case Constants.SC_SERVICE_UNAVAILABLE:
-                        managerConfig.rotateToNextDomain();
-                        break;
-
                     default: {
-                        log.warn("HTTP State: {} : {} ", getDiamondResult.getHttpStatus(),
-                                httpClient.getState());
-                        managerConfig.rotateToNextDomain();
+                        if (httpStatus != lastHttpStatus) {
+                            log.warn("{}: HTTP State: {} : {} ", diamondAxis, httpStatus, httpClient.getState());
+                            lastHttpStatus = httpStatus;
+                        }
                     }
                 }
             } catch (Exception e) {
-                log.error("http error：{}", e.getMessage());
-                managerConfig.rotateToNextDomain();
+                if (!isMessageSameExeption(e, lastException)) {
+                    log.error("{}: http error：{}", diamondAxis, e.getMessage());
+                    lastException = e;
+                }
             }
         }
 
@@ -195,7 +199,11 @@ class DiamondRemoteChecker {
         String probeUpdateString = diamondSubscriber.createProbeUpdateString();
         if (StringUtils.isBlank(probeUpdateString)) return null;
 
+        int lastHttpStatus = -1; // for reduce logs
+        Exception lastException = null;
         while (0 == timeout || timeout > costTime) {
+            if (costTime > 0)  managerConfig.rotateToNextDomain();
+
             long onceTimeOut = getOnceTimeOut(costTime, timeout);
             costTime += onceTimeOut;
 
@@ -206,23 +214,32 @@ class DiamondRemoteChecker {
                 switch (httpStatus) {
                     case Constants.SC_OK:
                         return checkResult.getUpdateDataIdsInBody();
-                    case Constants.SC_SERVICE_UNAVAILABLE:
-                        managerConfig.rotateToNextDomain();
-                        break;
                     default:
-                        log.warn("get changed DataID list response HTTP State: " + httpStatus);
-                        managerConfig.rotateToNextDomain();
+                        if (httpStatus != lastHttpStatus) {
+                            log.warn("get changed DataID list response HTTP State: " + httpStatus);
+                            lastHttpStatus = httpStatus;
+                        }
                 }
             } catch (NoNameServerAvailableException e) {
-                log.warn("error {}", e.getMessage());
+                log.warn("checkUpdateDataIds error {}", e.getMessage());
                 break;
             } catch (Exception e) {
-                log.warn("error {}", e.getMessage());
-                managerConfig.rotateToNextDomain();
+                if (!isMessageSameExeption(e, lastException)){
+                    log.warn("checkUpdateDataIds error {}", e.getMessage());
+                    lastException = e;
+                }
             }
         }
         throw new RuntimeException("get changed dataId list to "
                 + managerConfig.getDomainName() + " timeout " + timeout);
+    }
+
+    private boolean isMessageSameExeption(Exception e1, Exception e2) {
+        if (e1 == e2) return true;
+        if (e1 == null) return false;
+        if (e2 == null) return false;
+
+        return e1.getMessage().equals(e2.getMessage());
     }
 
 
