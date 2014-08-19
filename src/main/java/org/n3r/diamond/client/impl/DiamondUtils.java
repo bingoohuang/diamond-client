@@ -51,6 +51,19 @@ public class DiamondUtils {
         return realMd5 == null ? md5 == null : realMd5.equals(md5);
     }
 
+    public static StringBuilder padding(String s, char letter, int repeats) {
+        StringBuilder sb = new StringBuilder(s);
+        while (repeats-- > 0) {
+            sb.append(letter);
+        }
+
+        return sb;
+    }
+
+    public static String paddingBase64(String s) {
+        return padding(s, '=', s.length() % 4).toString();
+    }
+
     static Pattern encryptPattern = Pattern.compile("\\{(...)\\}");
 
     public static String tryDecrypt(String original, String dataId) {
@@ -62,13 +75,13 @@ public class DiamondUtils {
         String encrypted = original.substring(5);
         String algrithm = matcher.group(1);
         if ("PBE".equalsIgnoreCase(algrithm)) {
-            return Pbe.decrypt(encrypted, dataId);
+            return Pbe.decrypt(paddingBase64(encrypted), dataId);
         }
 
         throw new RuntimeException(algrithm + " is not supported now");
     }
 
-    public static Properties tryDecrypt(Properties properties, String dataId) {
+    public static Properties tryDecrypt(Properties properties) {
         Properties newProperties = new Properties();
 
         for(String key : properties.stringPropertyNames() ) {

@@ -134,8 +134,7 @@ class DiamondRemoteChecker {
         long costTime = 0;
 
         String uri = getUriString(diamondAxis);
-        log.info(uri);
-
+        // log.info(uri); // /diamond-server/content?dataId=res&group=poet.base
 
         int totalRetryTimes = managerConfig.getRetrieveDataRetryTimes();
         int triedTimes = 0;
@@ -145,12 +144,15 @@ class DiamondRemoteChecker {
         while (0 == timeout || timeout > costTime) {
             if (triedTimes > 0) managerConfig.rotateToNextDomain();
 
-            if (++triedTimes > totalRetryTimes + 1) {
+            if (triedTimes > totalRetryTimes + 1) {
                 log.warn("reached the max retry times");
                 break;
             }
 
-            log.info("retrieve config，try {} times with costTime {}", triedTimes, costTime);
+            if (triedTimes > 0 )
+                log.info("retrieve config，try {} times with costTime {}", triedTimes, costTime);
+
+            ++triedTimes;
 
             long onceTimeOut = getOnceTimeOut(costTime, timeout);
             costTime += onceTimeOut;
@@ -261,7 +263,7 @@ class DiamondRemoteChecker {
 
         contentCache.put(diamondAxis, Optional.fromNullable(diamondContent));
 
-        log.debug("received {}, content={}", diamondAxis, diamondContent);
+        // log.debug("received {}, content={}", diamondAxis, diamondContent);
 
         return diamondContent;
     }

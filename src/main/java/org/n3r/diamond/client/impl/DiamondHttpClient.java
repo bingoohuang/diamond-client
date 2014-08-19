@@ -167,7 +167,8 @@ class DiamondHttpClient {
         try {
             resetHostConfig();
             int httpStatus = httpClient.executeMethod(postMethod);
-            Set<String> updateDataIdsInBody = getUpdateDataIdsInBody(postMethod);
+            Set<String> updateDataIdsInBody = httpStatus == Constants.SC_OK
+                    ? getUpdateDataIdsInBody(postMethod) : null;
             return new CheckResult(httpStatus, updateDataIdsInBody);
         } finally {
             postMethod.releaseConnection();

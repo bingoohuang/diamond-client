@@ -18,7 +18,7 @@ class DiamondAllListener implements DiamondListener {
     public void accept(final DiamondStone diamondStone) {
         CopyOnWriteArrayList<DiamondListener> listeners = allListeners.get(diamondStone.getDiamondAxis());
         if (listeners == null || listeners.isEmpty()) {
-            log.debug("[notify-listener] no listener for {}", diamondStone.getDiamondAxis());
+            // log.debug("[notify-listener] no listener for {}", diamondStone.getDiamondAxis());
             return;
         }
 

@@ -68,7 +68,7 @@ class LocalDiamondMiner {
         try {
             return FileUtils.readFileToString(file, ENCODING);
         } catch (IOException e) {
-            log.error("readfile content fail {}", e.getMessage());
+            log.error("read file content fail {}", e.getMessage());
             return null;
         }
     }
@@ -101,7 +101,7 @@ class LocalDiamondMiner {
                 String grandpaDir = getGrandpaDir(realPath);
                 if (!rootPath.equals(grandpaDir)
                         || !DIAMOND_STONE_EXT.equals("." + FilenameUtils.getExtension(realPath))) {
-                    log.debug("invalid file monitored {} ", file);
+                    // log.debug("invalid file monitored {} ", file);
                     return;
                 }
 
@@ -176,7 +176,7 @@ class LocalDiamondMiner {
                 String grandpaDir = getGrandpaDir(realPath);
                 if (!rootPath.equals(grandpaDir)
                         || !DIAMOND_STONE_EXT.equals("." + FilenameUtils.getExtension(realPath))) {
-                    log.debug("invalid file monitored {} ", subFile);
+                    // log.debug("invalid file monitored {} ", subFile);
                     continue;
                 }
 
