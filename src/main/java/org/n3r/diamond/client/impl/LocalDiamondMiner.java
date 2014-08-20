@@ -56,7 +56,7 @@ class LocalDiamondMiner {
             return null;
         }
 
-        log.debug("read local, {}", diamondMeta.getDiamondAxis());
+        // log.debug("read local, {}", diamondMeta.getDiamondAxis());
 
         return readFileContent(filePath);
     }

@@ -50,6 +50,8 @@ public abstract class DiamondSubstituter {
      *
      */
     public static String substitute(String strVal, boolean ignoreBadHolders) {
+        if (strVal == null) return null;
+
         Set<String> visitedHolders = new HashSet<String>();
         return substitute(strVal, visitedHolders, ignoreBadHolders);
     }
@@ -66,6 +68,7 @@ public abstract class DiamondSubstituter {
      */
     public static String substitute(String strVal, Set<String> visitedHolders,
                                     boolean ignoreBadHolders) {
+        if (strVal == null) return null;
 
         StringBuffer buf = new StringBuffer(strVal);
         int startIndex = strVal.indexOf(DEF_HOLDER_PREFIX);
