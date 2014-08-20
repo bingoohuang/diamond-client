@@ -39,6 +39,16 @@ public interface Minerable {
     String getStone(String group, String dataId);
     String getStone(String group, String dataId, String defaultValue);
 
+    <T> T getObject(String key, Class<T> clazz);
+    <T> T getStoneObject(String group, String dataId, Class<T> clazz);
+    <T> T getObject(String key, String defaultValue , Class<T> clazz);
+    <T> T getStoneObject(String group, String dataId, String defaultValue, Class<T> clazz);
+
+    <T> List<T> getObjects(String key, Class<T> clazz);
+    <T> List<T> getStoneObjects(String group, String dataId, Class<T> clazz);
+    <T> List<T> getObjects(String key, String defaultValue , Class<T> clazz);
+    <T> List<T> getStoneObjects(String group, String dataId, String defaultValue, Class<T> clazz);
+
     boolean exists(String group, String dataId);
     boolean exists(String key);
 

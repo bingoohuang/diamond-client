@@ -1,14 +1,20 @@
 package org.n3r.diamond.client.impl;
 
+import com.google.common.collect.Lists;
 import org.apache.commons.codec.digest.DigestUtils;
 import org.apache.commons.lang3.StringEscapeUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.joor.Reflect;
+import org.n3r.diamond.client.cache.ParamsAppliable;
+import org.n3r.diamond.client.cache.Spec;
+import org.n3r.diamond.client.cache.SpecParser;
 import org.n3r.diamond.client.security.Pbe;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.net.URLDecoder;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Properties;
 import java.util.Set;
 import java.util.regex.Matcher;
@@ -18,6 +24,48 @@ import static org.n3r.diamond.client.impl.Constants.LINE_SEPARATOR;
 
 public class DiamondUtils {
     private static Logger log = LoggerFactory.getLogger(DiamondUtils.class);
+
+    public  static <T> T parseObject(String specContent, Class<T> clazz) {
+        if (StringUtils.isBlank(specContent)) return null;
+
+        try {
+            Spec spec = SpecParser.parseSpecLeniently(specContent);
+            Object object = Reflect.on(spec.getName()).create().get();
+            if (clazz.isInstance(object)) {
+                if (object instanceof ParamsAppliable) {
+                    ((ParamsAppliable) object).applyParams(spec.getParams());
+                }
+                return (T) object;
+            }
+        } catch (Exception e) {
+            log.error("create poet.secure.store {} failed by {}", specContent, e.getMessage());
+        }
+
+        return null;
+    }
+
+    public  static <T> List<T> parseObjects(String specContent, Class<T> clazz) {
+        List<T> result = Lists.newArrayList();
+        if (StringUtils.isBlank(specContent)) return result;
+
+        try {
+            Spec[] specs = SpecParser.parseSpecs(specContent);
+            for (Spec spec: specs) {
+                Object object = Reflect.on(spec.getName()).create().get();
+                if (clazz.isInstance(object)) {
+                    if (object instanceof ParamsAppliable) {
+                        ((ParamsAppliable) object).applyParams(spec.getParams());
+                    }
+                    result.add((T) object);
+                }
+            }
+        } catch (Exception e) {
+            log.error("create poet.secure.store {} failed by {}", specContent, e.getMessage());
+        }
+
+        return result;
+    }
+
 
     public static Set<String> convertStringToSet(String modifiedDataIdsString) {
         if (StringUtils.isEmpty(modifiedDataIdsString)) return null;

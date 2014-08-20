@@ -16,10 +16,53 @@ import java.util.List;
 import java.util.Properties;
 import java.util.concurrent.TimeUnit;
 
+import static org.n3r.diamond.client.impl.DiamondUtils.parseObject;
+import static org.n3r.diamond.client.impl.DiamondUtils.parseObjects;
+
 public abstract class AbstractMiner implements Minerable {
     Logger log = LoggerFactory.getLogger(AbstractMiner.class);
 
     public abstract String getDefaultGroupName();
+
+    @Override
+    public <T> T getObject(String key, Class<T> clazz) {
+        return parseObject(getString(key), clazz);
+    }
+
+    @Override
+    public <T> T getStoneObject(String group, String dataId, Class<T> clazz) {
+        return parseObject(getStone(group, dataId), clazz);
+    }
+
+    @Override
+    public <T> T getObject(String key, String defaultValue, Class<T> clazz) {
+        return parseObject(getString(key, defaultValue), clazz);
+    }
+
+    @Override
+    public <T> T getStoneObject(String group, String dataId, String defaultValue, Class<T> clazz) {
+        return parseObject(getStone(group, dataId, defaultValue), clazz);
+    }
+
+    @Override
+    public <T> List<T> getObjects(String key, Class<T> clazz) {
+        return parseObjects(getString(key), clazz);
+    }
+
+    @Override
+    public <T> List<T> getStoneObjects(String group, String dataId, Class<T> clazz) {
+        return parseObjects(getStone(group, dataId), clazz);
+    }
+
+    @Override
+    public <T> List<T> getObjects(String key, String defaultValue, Class<T> clazz) {
+        return parseObjects(getString(key, defaultValue), clazz);
+    }
+
+    @Override
+    public <T> List<T> getStoneObjects(String group, String dataId, String defaultValue, Class<T> clazz) {
+        return parseObjects(getStone(group, dataId, defaultValue), clazz);
+    }
 
     @Override
     public long getBytes(String key) {
