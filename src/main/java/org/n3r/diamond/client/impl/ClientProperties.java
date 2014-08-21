@@ -11,6 +11,8 @@ import java.io.*;
 import java.util.List;
 import java.util.Properties;
 
+import static java.io.File.separator;
+
 public class ClientProperties {
     private static Logger log = LoggerFactory.getLogger(ClientProperties.class);
 
@@ -48,25 +50,6 @@ public class ClientProperties {
         return addresses;
     }
 
-    public static InputStream toInputStreamFromCdOrClasspath(String pathname, boolean silent) {
-        File diamondJdbc = new File(pathname);
-        if (diamondJdbc.exists()) {
-            try {
-                return new FileInputStream(diamondJdbc);
-            } catch (FileNotFoundException e) {
-                // This should not happened
-                log.error("read file {} error", pathname, e);
-                return null;
-            }
-        }
-
-        ClassLoader classLoader = ClientProperties.class.getClassLoader();
-        InputStream is = classLoader.getResourceAsStream(pathname);
-        if (is != null || silent) return is;
-
-        throw new RuntimeException("fail to find " + pathname + " in current dir or classpath");
-    }
-
     public static NameServerMode readNameServerMode() {
         String nameServerAddress = properties.getProperty(Constants.NAME_SERVER_ADDRESS);
         if (StringUtils.isNotBlank(nameServerAddress)) return NameServerMode.ByAddressProperty;
@@ -83,6 +66,45 @@ public class ClientProperties {
 
     public static enum NameServerMode {
         Off, ByEtcHosts, ByAddressProperty
+    }
+
+    public static InputStream toInputStreamFromCdOrClasspath(String pathname, boolean silent) {
+        InputStream is = readFileFromCurrentDir(new File(pathname));
+        if (is != null) return is;
+
+        is = readFileFromDiamondClientHome(pathname);
+        if (is != null) return is;
+
+        is = getClassPathResourceAsStream(pathname);
+        if (is != null || silent) return is;
+
+        throw new RuntimeException("fail to find " + pathname + " in current dir or classpath");
+    }
+
+    private static InputStream readFileFromDiamondClientHome(String pathname) {
+        String filePath = System.getProperty("user.home") + separator + ".diamond-client";
+        File dir = new File(filePath);
+        if (!dir.exists()) return null;
+
+        File file = new File(dir, pathname);
+
+        return readFileFromCurrentDir(file);
+    }
+
+    private static InputStream readFileFromCurrentDir(File file) {
+        if (!file.exists()) return null;
+
+        try {
+            return new FileInputStream(file);
+        } catch (FileNotFoundException e) {
+            // This should not happened
+            log.error("read file {} error", file, e);
+            return null;
+        }
+    }
+
+    public static InputStream getClassPathResourceAsStream(String resourceName) {
+        return ClientProperties.class.getClassLoader().getResourceAsStream(resourceName);
     }
 
 }
