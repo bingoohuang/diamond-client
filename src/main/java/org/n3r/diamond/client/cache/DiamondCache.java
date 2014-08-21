@@ -4,11 +4,9 @@ import com.google.common.base.Optional;
 import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
 import com.google.common.util.concurrent.Futures;
-import com.google.common.util.concurrent.MoreExecutors;
-import org.joor.Reflect;
 import org.n3r.diamond.client.DiamondStone;
 import org.n3r.diamond.client.impl.DiamondSubstituter;
-import org.n3r.diamond.client.impl.MockDiamondServer;
+import org.n3r.diamond.client.impl.DiamondUtils;
 import org.n3r.diamond.client.impl.SnapshotMiner;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -69,10 +67,11 @@ public class DiamondCache {
                 return executorService.submit(new Callable<Object>() {
                     @Override
                     public Object call() throws Exception {
-                        Callable<Object> updater = createUpdater(diamondContent, diamondAxis, dynamics);
+                        Callable<Object> updater = createUpdater(diamondContent, dynamics);
                         if (updater == null) return null;
 
-                        return updateCache(updater, diamondAxis, diamondContent, dynamics);
+                        Optional<Object> objectOptional = updateCache(updater, diamondAxis, diamondContent, dynamics);
+                        return objectOptional != null ? objectOptional.orNull() : null;
                     }
                 });
             }
@@ -88,13 +87,14 @@ public class DiamondCache {
                 return executorService.submit(new Callable<Object>() {
                     @Override
                     public Object call() throws Exception {
-                        Callable<Object> updater = createUpdater(diamondContent, diamondAxis, dynamics);
+                        Callable<Object> updater = createUpdater(diamondContent, dynamics);
                         if (updater == null) return null;
 
                         if (isDynamicApplicable(updater)) {
                             return CacheBuilder.newBuilder().build();
                         } else {
-                            return updateCache(updater, diamondAxis, diamondContent, dynamics);
+                            Optional<Object> objectOptional = updateCache(updater, diamondAxis, diamondContent, dynamics);
+                            return objectOptional != null ? objectOptional.orNull() : null;
                         }
                     }
                 });
@@ -125,59 +125,41 @@ public class DiamondCache {
         return null;
     }
 
-    private Object updateCache(Callable<Object> updater,
-                               DiamondStone.DiamondAxis diamondAxis,
-                               String diamondContent,
-                               Object... dynamics) {
-        int dynamicsHasCode = Arrays.deepHashCode(dynamics);
-
+    private Optional<Object> updateCache(Callable<Object> updater,
+                                         DiamondStone.DiamondAxis diamondAxis,
+                                         String diamondContent,
+                                         Object... dynamics) {
         log.info("start to update cache {}", diamondAxis);
         if (isEmpty(diamondContent)) return null;
 
-        Object diamondCache = null;
+        Object diamondCache;
         try {
             diamondCache = updater.call();
         } catch (Exception e) {
             log.error("{} called with exception", diamondContent, e);
-            snapshotMiner.removeCache(diamondAxis, dynamicsHasCode);
+            return null;
         }
 
+        int dynamicsHasCode = Arrays.deepHashCode(dynamics);
         snapshotMiner.saveCache(diamondAxis, diamondCache, dynamicsHasCode);
         log.info("end to update cache {}", diamondAxis);
 
-        return diamondCache;
+        return Optional.fromNullable(diamondCache);
     }
 
 
-    private Callable<Object> createUpdater(String diamondContent,
-                                           DiamondStone.DiamondAxis diamondAxis,
-                                           Object... dynamics) {
-        Spec spec;
-        int dynamicsHasCode = Arrays.deepHashCode(dynamics);
-
-        try {
-            String substitute = DiamondSubstituter.substitute(diamondContent, true);
-            spec = SpecParser.parseSpecLeniently(substitute);
-        } catch (Exception e) {
-            log.error("parse {} failed", diamondContent, e);
-            snapshotMiner.removeCache(diamondAxis, dynamicsHasCode);
-            return null;
-        }
-
-        Object object = Reflect.on(spec.getName()).create().get();
-        if (!(object instanceof Callable)) {
+    private Callable<Object> createUpdater(String diamondContent, Object... dynamics) {
+        String substitute = DiamondSubstituter.substitute(diamondContent, true);
+        Callable object = DiamondUtils.parseObject(substitute, Callable.class);
+        if (object == null) {
             log.error("{} cannot be parsed as Callable", diamondContent);
-            snapshotMiner.removeCache(diamondAxis, dynamicsHasCode);
             return null;
         }
-
-        if (object instanceof ParamsAppliable)
-            ((ParamsAppliable) object).applyParams(spec.getParams());
 
         if (object instanceof DynamicsAppliable)
             ((DynamicsAppliable) object).setDynamics(dynamics);
 
-        return (Callable) object;
+        return object;
     }
 
     public void close() {
@@ -192,15 +174,15 @@ public class DiamondCache {
         Callable<Object> task = new Callable<Object>() {
             @Override
             public Object call() throws Exception {
-                Callable<Object> updater = createUpdater(diamondContent, diamondAxis);
+                Callable<Object> updater = createUpdater(diamondContent);
                 if (updater == null) return null;
 
                 if (isDynamicApplicable(updater)) {
                     removeCacheSnapshot(diamondAxis);
                     return null;
                 } else {
-                    final Object updated = updateCache(updater, diamondAxis, diamondContent);
-                    cache.put(diamondAxis, Futures.immediateFuture(updated));
+                    final Optional<Object> updated = updateCache(updater, diamondAxis, diamondContent);
+                    if (updated != null) cache.put(diamondAxis, Futures.immediateFuture(updated.orNull()));
                     return updated;
                 }
             }

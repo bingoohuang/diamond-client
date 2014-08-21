@@ -25,42 +25,41 @@ import static org.n3r.diamond.client.impl.Constants.LINE_SEPARATOR;
 public class DiamondUtils {
     private static Logger log = LoggerFactory.getLogger(DiamondUtils.class);
 
-    public  static <T> T parseObject(String specContent, Class<T> clazz) {
+    public static <T> T parseObject(String specContent, Class<T> clazz) {
         if (StringUtils.isBlank(specContent)) return null;
 
         try {
             Spec spec = SpecParser.parseSpecLeniently(specContent);
-            Object object = Reflect.on(spec.getName()).create().get();
-            if (clazz.isInstance(object)) {
-                if (object instanceof ParamsAppliable) {
-                    ((ParamsAppliable) object).applyParams(spec.getParams());
-                }
-                return (T) object;
-            }
+            return createObject(clazz, spec);
         } catch (Exception e) {
-            log.error("create poet.secure.store {} failed by {}", specContent, e.getMessage());
+            log.error("parse object {} failed by {}", specContent, e.getMessage());
         }
 
         return null;
     }
 
-    public  static <T> List<T> parseObjects(String specContent, Class<T> clazz) {
+    private static <T> T createObject(Class<T> clazz, Spec spec) {
+        Object object = Reflect.on(spec.getName()).create().get();
+        if (!clazz.isInstance(object)) return null;
+
+        if (object instanceof ParamsAppliable)
+            ((ParamsAppliable) object).applyParams(spec.getParams());
+
+        return (T) object;
+    }
+
+    public static <T> List<T> parseObjects(String specContent, Class<T> clazz) {
         List<T> result = Lists.newArrayList();
         if (StringUtils.isBlank(specContent)) return result;
 
         try {
             Spec[] specs = SpecParser.parseSpecs(specContent);
-            for (Spec spec: specs) {
-                Object object = Reflect.on(spec.getName()).create().get();
-                if (clazz.isInstance(object)) {
-                    if (object instanceof ParamsAppliable) {
-                        ((ParamsAppliable) object).applyParams(spec.getParams());
-                    }
-                    result.add((T) object);
-                }
+            for (Spec spec : specs) {
+                T object = createObject(clazz, spec);
+                if (object != null) result.add(object);
             }
         } catch (Exception e) {
-            log.error("create poet.secure.store {} failed by {}", specContent, e.getMessage());
+            log.error("parse object {} failed by {}", specContent, e.getMessage());
         }
 
         return result;
@@ -132,7 +131,7 @@ public class DiamondUtils {
     public static Properties tryDecrypt(Properties properties) {
         Properties newProperties = new Properties();
 
-        for(String key : properties.stringPropertyNames() ) {
+        for (String key : properties.stringPropertyNames()) {
             String property = properties.getProperty(key);
             newProperties.put(key, tryDecrypt(property, key));
         }
