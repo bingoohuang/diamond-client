@@ -5,7 +5,7 @@ import com.alibaba.fastjson.serializer.SerializerFeature;
 import com.google.common.base.Optional;
 import com.google.common.primitives.UnsignedLongs;
 import org.apache.commons.io.FileUtils;
-import org.n3r.diamond.client.DiamondStone;
+import org.n3r.diamond.client.DiamondAxis;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -27,11 +27,11 @@ public class SnapshotMiner {
         file.mkdirs();
     }
 
-    public String getSnapshot(DiamondStone.DiamondAxis diamondAxis) throws IOException {
+    public String getSnapshot(DiamondAxis diamondAxis) throws IOException {
         return getFileContent(diamondAxis, DIAMOND_STONE_EXT);
     }
 
-    private String getFileContent(DiamondStone.DiamondAxis diamondAxis, String extension) throws IOException {
+    private String getFileContent(DiamondAxis diamondAxis, String extension) throws IOException {
         File file = new File(dir + separator + diamondAxis.getGroup()
                 + separator + diamondAxis.getDataId() + extension);
         if (!file.exists()) return null;
@@ -39,7 +39,7 @@ public class SnapshotMiner {
         return FileUtils.readFileToString(file, ENCODING);
     }
 
-    public void saveSnaptshot(DiamondStone.DiamondAxis diamondAxis, String content) {
+    public void saveSnaptshot(DiamondAxis diamondAxis, String content) {
         if (content == null) return;
 
         try {
@@ -50,11 +50,11 @@ public class SnapshotMiner {
         }
     }
 
-    public void removeSnapshot(DiamondStone.DiamondAxis diamondAxis) {
+    public void removeSnapshot(DiamondAxis diamondAxis) {
         removeSnapshot(diamondAxis, DIAMOND_STONE_EXT);
     }
 
-    private void removeSnapshot(DiamondStone.DiamondAxis diamondAxis, String extension) {
+    private void removeSnapshot(DiamondAxis diamondAxis, String extension) {
         String path = dir + separator + diamondAxis.getGroup();
         File dir = new File(path);
         if (!dir.exists()) return;
@@ -67,7 +67,7 @@ public class SnapshotMiner {
         if (dir.list().length == 0) dir.delete();
     }
 
-    private void removeAllSnapshot(DiamondStone.DiamondAxis diamondAxis, final String extension) {
+    private void removeAllSnapshot(DiamondAxis diamondAxis, final String extension) {
         String path = dir + separator + diamondAxis.getGroup();
         File dir = new File(path);
         if (!dir.exists()) return;
@@ -86,7 +86,7 @@ public class SnapshotMiner {
         if (dir.list().length == 0) dir.delete();
     }
 
-    private File getOrCreateDiamondFile(DiamondStone.DiamondAxis diamondAxis, String extension) throws IOException {
+    private File getOrCreateDiamondFile(DiamondAxis diamondAxis, String extension) throws IOException {
         String path = dir + separator + diamondAxis.getGroup();
         File dir = new File(path);
         if (!dir.exists()) dir.mkdir();
@@ -97,7 +97,7 @@ public class SnapshotMiner {
         return file;
     }
 
-    public void saveCache(DiamondStone.DiamondAxis diamondAxis, Object diamondCache, int dynamicsHasCode) {
+    public void saveCache(DiamondAxis diamondAxis, Object diamondCache, int dynamicsHasCode) {
         String json = JSON.toJSONString(diamondCache, SerializerFeature.WriteClassName);
         try {
             File file = getOrCreateDiamondFile(diamondAxis, getDynamicCacheExtension(dynamicsHasCode));
@@ -108,7 +108,7 @@ public class SnapshotMiner {
     }
 
 
-    public Optional<Object> getCache(DiamondStone.DiamondAxis diamondAxis, int dynamicsHasCode) {
+    public Optional<Object> getCache(DiamondAxis diamondAxis, int dynamicsHasCode) {
         try {
             String fileContent = getFileContent(diamondAxis, getDynamicCacheExtension(dynamicsHasCode));
             if (fileContent == null) return Optional.absent();
@@ -121,11 +121,11 @@ public class SnapshotMiner {
         return null;
     }
 
-    public void removeCache(DiamondStone.DiamondAxis diamondAxis, int dynamicsHasCode) {
+    public void removeCache(DiamondAxis diamondAxis, int dynamicsHasCode) {
         removeSnapshot(diamondAxis, getDynamicCacheExtension(dynamicsHasCode));
     }
 
-    public void removeAllCache(DiamondStone.DiamondAxis diamondAxis) {
+    public void removeAllCache(DiamondAxis diamondAxis) {
         removeAllSnapshot(diamondAxis, DIAMOND_CACHE_EXT);
     }
 

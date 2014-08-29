@@ -7,7 +7,7 @@ import org.n3r.diamond.client.impl.DiamondUtils;
 public class DiamondManager {
     private DiamondSubscriber diamondSubscriber = DiamondSubscriber.getInstance();
 
-    private final DiamondStone.DiamondAxis diamondAxis;
+    private final DiamondAxis diamondAxis;
     private int timeoutMillis = 3000;  // timeout in millis of network
 
     public DiamondManager(String dataId) {
@@ -15,7 +15,7 @@ public class DiamondManager {
     }
 
     public DiamondManager(String group, String dataId) {
-        diamondAxis = DiamondStone.DiamondAxis.makeAxis(group, dataId);
+        diamondAxis = DiamondAxis.makeAxis(group, dataId);
 
         diamondSubscriber.getCachedMeta(diamondAxis);
     }

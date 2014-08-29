@@ -1,5 +1,6 @@
 package org.n3r.diamond.client.impl;
 
+import org.n3r.diamond.client.DiamondAxis;
 import org.n3r.diamond.client.DiamondStone;
 import org.n3r.diamond.client.DiamondListener;
 import org.slf4j.Logger;
@@ -11,9 +12,9 @@ import java.util.concurrent.*;
 class DiamondAllListener implements DiamondListener {
     private Logger log = LoggerFactory.getLogger(DiamondAllListener.class);
 
-    private final ConcurrentMap<DiamondStone.DiamondAxis,
+    private final ConcurrentMap<DiamondAxis,
             CopyOnWriteArrayList<DiamondListener>> allListeners
-            = new ConcurrentHashMap<DiamondStone.DiamondAxis, CopyOnWriteArrayList<DiamondListener>>();
+            = new ConcurrentHashMap<DiamondAxis, CopyOnWriteArrayList<DiamondListener>>();
 
     public void accept(final DiamondStone diamondStone) {
         CopyOnWriteArrayList<DiamondListener> listeners = allListeners.get(diamondStone.getDiamondAxis());
@@ -54,11 +55,11 @@ class DiamondAllListener implements DiamondListener {
         }
     }
 
-    public void removeManagerListeners(DiamondStone.DiamondAxis diamondAxis) {
+    public void removeManagerListeners(DiamondAxis diamondAxis) {
         allListeners.remove(diamondAxis);
     }
 
-    public void addDiamondListener(DiamondStone.DiamondAxis diamondAxis, DiamondListener addListener) {
+    public void addDiamondListener(DiamondAxis diamondAxis, DiamondListener addListener) {
         if (null == addListener) return;
 
         CopyOnWriteArrayList<DiamondListener> listenerList = allListeners.get(diamondAxis);
@@ -71,7 +72,7 @@ class DiamondAllListener implements DiamondListener {
         listenerList.add(addListener);
     }
 
-    public void removeDiamondListener(DiamondStone.DiamondAxis diamondAxis, DiamondListener addListener) {
+    public void removeDiamondListener(DiamondAxis diamondAxis, DiamondListener addListener) {
         if (null == addListener) return;
 
         CopyOnWriteArrayList<DiamondListener> listenerList = allListeners.get(diamondAxis);

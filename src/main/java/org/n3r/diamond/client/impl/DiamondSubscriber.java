@@ -4,8 +4,8 @@ import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.CacheLoader;
 import com.google.common.cache.LoadingCache;
 import org.apache.commons.lang3.StringUtils;
+import org.n3r.diamond.client.DiamondAxis;
 import org.n3r.diamond.client.DiamondListener;
-import org.n3r.diamond.client.DiamondStone;
 import org.n3r.diamond.client.cache.DiamondCache;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -25,11 +25,11 @@ public class DiamondSubscriber implements Closeable {
 
     private Logger log = LoggerFactory.getLogger(DiamondSubscriber.class);
 
-    private final LoadingCache<DiamondStone.DiamondAxis, DiamondMeta> metaCache
+    private final LoadingCache<DiamondAxis, DiamondMeta> metaCache
             = CacheBuilder.newBuilder()
-            .build(new CacheLoader<DiamondStone.DiamondAxis, DiamondMeta>() {
+            .build(new CacheLoader<DiamondAxis, DiamondMeta>() {
                 @Override
-                public DiamondMeta load(DiamondStone.DiamondAxis key) throws Exception {
+                public DiamondMeta load(DiamondAxis key) throws Exception {
                     start();
                     return new DiamondMeta(key);
                 }
@@ -50,11 +50,11 @@ public class DiamondSubscriber implements Closeable {
     private DiamondSubscriber() {
     }
 
-    public void addDiamondListener(DiamondStone.DiamondAxis diamondAxis, DiamondListener diamondListener) {
+    public void addDiamondListener(DiamondAxis diamondAxis, DiamondListener diamondListener) {
         diamondRemoteChecker.addDiamondListener(diamondAxis, diamondListener);
     }
 
-    public void removeDiamondListener(DiamondStone.DiamondAxis diamondAxis, DiamondListener diamondListener) {
+    public void removeDiamondListener(DiamondAxis diamondAxis, DiamondListener diamondListener) {
         diamondRemoteChecker.removeDiamondListener(diamondAxis, diamondListener);
     }
 
@@ -95,6 +95,13 @@ public class DiamondSubscriber implements Closeable {
 
     private void rotateCheckDiamonds() {
         int pollingInterval = managerConfig.getPollingInterval();
+        scheduler.schedule(new Runnable() {
+            @Override
+            public void run() {
+                new DiamondExtenderManager().loadDiamondExtenders();
+            }
+        }, 3, TimeUnit.SECONDS);
+
         scheduler.scheduleWithFixedDelay(new Runnable() {
             public void run() {
                 rotateCheckDiamondsTask();
@@ -137,7 +144,7 @@ public class DiamondSubscriber implements Closeable {
         return diamondRemoteChecker;
     }
 
-    public String retrieveDiamondLocalAndRemote(DiamondStone.DiamondAxis diamondAxis, long timeout) {
+    public String retrieveDiamondLocalAndRemote(DiamondAxis diamondAxis, long timeout) {
         DiamondMeta diamondMeta = getCachedMeta(diamondAxis);
         // local first
         try {
@@ -160,11 +167,11 @@ public class DiamondSubscriber implements Closeable {
         return result;
     }
 
-    public void saveSnapshot(DiamondStone.DiamondAxis diamondAxis, String diamondContent) {
+    public void saveSnapshot(DiamondAxis diamondAxis, String diamondContent) {
         snapshotMiner.saveSnaptshot(diamondAxis, diamondContent);
     }
 
-    public String getDiamond(DiamondStone.DiamondAxis diamondAxis, long timeout) {
+    public String getDiamond(DiamondAxis diamondAxis, long timeout) {
         if (MockDiamondServer.isTestMode()) return MockDiamondServer.getDiamond(diamondAxis);
 
         try {
@@ -180,7 +187,7 @@ public class DiamondSubscriber implements Closeable {
     }
 
 
-    public String getSnapshot(DiamondStone.DiamondAxis diamondAxis) {
+    public String getSnapshot(DiamondAxis diamondAxis) {
         try {
             DiamondMeta diamondMeta = getCachedMeta(diamondAxis);
             String diamondContent = snapshotMiner.getSnapshot(diamondAxis);
@@ -193,12 +200,12 @@ public class DiamondSubscriber implements Closeable {
         }
     }
 
-    public void removeSnapshot(DiamondStone.DiamondAxis diamondAxis) {
+    public void removeSnapshot(DiamondAxis diamondAxis) {
         snapshotMiner.removeSnapshot(diamondAxis);
     }
 
     public void checkSnapshot() {
-        for (Map.Entry<DiamondStone.DiamondAxis, DiamondMeta> entry : metaCache.asMap().entrySet()) {
+        for (Map.Entry<DiamondAxis, DiamondMeta> entry : metaCache.asMap().entrySet()) {
             final DiamondMeta diamondMeta = entry.getValue();
 
             if (diamondMeta.isUseLocal()) continue;
@@ -209,12 +216,12 @@ public class DiamondSubscriber implements Closeable {
         }
     }
 
-    public DiamondMeta getCachedMeta(DiamondStone.DiamondAxis diamondAxis) {
+    public DiamondMeta getCachedMeta(DiamondAxis diamondAxis) {
         return metaCache.getUnchecked(diamondAxis);
     }
 
     public void checkLocal() {
-        for (Map.Entry<DiamondStone.DiamondAxis, DiamondMeta> entry : metaCache.asMap().entrySet()) {
+        for (Map.Entry<DiamondAxis, DiamondMeta> entry : metaCache.asMap().entrySet()) {
             final DiamondMeta diamondMeta = entry.getValue();
 
             try {
@@ -233,11 +240,11 @@ public class DiamondSubscriber implements Closeable {
 
     public String createProbeUpdateString() {
         StringBuilder probeModifyBuilder = new StringBuilder();
-        for (Map.Entry<DiamondStone.DiamondAxis, DiamondMeta> entry : metaCache.asMap().entrySet()) {
+        for (Map.Entry<DiamondAxis, DiamondMeta> entry : metaCache.asMap().entrySet()) {
             final DiamondMeta data = entry.getValue();
             if (data.isUseLocal()) continue;
 
-            DiamondStone.DiamondAxis axis = data.getDiamondAxis();
+            DiamondAxis axis = data.getDiamondAxis();
 
             probeModifyBuilder.append(axis.getDataId())
                     .append(Constants.WORD_SEPARATOR).append(axis.getGroup())
@@ -248,7 +255,7 @@ public class DiamondSubscriber implements Closeable {
         return probeModifyBuilder.toString();
     }
 
-    public Object getCache(DiamondStone.DiamondAxis diamondAxis, int timeoutMillis, Object... dynamics) {
+    public Object getCache(DiamondAxis diamondAxis, int timeoutMillis, Object... dynamics) {
         String diamondContent = getDiamond(diamondAxis, timeoutMillis);
         if (diamondContent == null) return null;
 

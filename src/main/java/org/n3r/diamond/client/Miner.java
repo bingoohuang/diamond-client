@@ -3,6 +3,7 @@ package org.n3r.diamond.client;
 import org.n3r.diamond.client.impl.Constants;
 import org.n3r.diamond.client.impl.DiamondSubstituter;
 
+@SuppressWarnings("unchecked")
 public class Miner extends AbstractMiner implements CacheMinerable {
     private final String defaultGroupName;
 

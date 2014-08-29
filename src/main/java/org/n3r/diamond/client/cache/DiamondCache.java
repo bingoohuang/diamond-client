@@ -4,7 +4,7 @@ import com.google.common.base.Optional;
 import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
 import com.google.common.util.concurrent.Futures;
-import org.n3r.diamond.client.DiamondStone;
+import org.n3r.diamond.client.DiamondAxis;
 import org.n3r.diamond.client.impl.DiamondSubstituter;
 import org.n3r.diamond.client.impl.DiamondUtils;
 import org.n3r.diamond.client.impl.SnapshotMiner;
@@ -16,17 +16,18 @@ import java.util.concurrent.*;
 
 import static org.apache.commons.lang3.StringUtils.isEmpty;
 
+@SuppressWarnings("unchecked")
 public class DiamondCache {
     private final SnapshotMiner snapshotMiner;
     private ExecutorService executorService = Executors.newSingleThreadExecutor();
     private Logger log = LoggerFactory.getLogger(DiamondCache.class);
-    private Cache<DiamondStone.DiamondAxis, Future<Object>> cache = CacheBuilder.newBuilder().build();
+    private Cache<DiamondAxis, Future<Object>> cache = CacheBuilder.newBuilder().build();
 
     public DiamondCache(SnapshotMiner snapshotMiner) {
         this.snapshotMiner = snapshotMiner;
     }
 
-    public Object getCache(final DiamondStone.DiamondAxis diamondAxis,
+    public Object getCache(final DiamondAxis diamondAxis,
                            final String diamondContent,
                            final Object... dynamics) {
         final int dynamicsHasCode = Arrays.deepHashCode(dynamics);
@@ -58,7 +59,7 @@ public class DiamondCache {
         return futureGet(diamondAxis, diamondContent, subCachedObject, dynamicsHasCode);
     }
 
-    private Callable<Future<Object>> getSecondFutureCallable(final DiamondStone.DiamondAxis diamondAxis,
+    private Callable<Future<Object>> getSecondFutureCallable(final DiamondAxis diamondAxis,
                                                              final String diamondContent,
                                                              final Object[] dynamics) {
         return new Callable<Future<Object>>() {
@@ -78,7 +79,7 @@ public class DiamondCache {
         };
     }
 
-    private Callable<Future<Object>> createFirstFutureCallable(final DiamondStone.DiamondAxis diamondAxis,
+    private Callable<Future<Object>> createFirstFutureCallable(final DiamondAxis diamondAxis,
                                                                final String diamondContent,
                                                                final Object[] dynamics) {
         return new Callable<Future<Object>>() {
@@ -102,7 +103,7 @@ public class DiamondCache {
         };
     }
 
-    private Object futureGet(DiamondStone.DiamondAxis diamondAxis,
+    private Object futureGet(DiamondAxis diamondAxis,
                              String diamondContent, Future<Object> future, int dynamicsHasCode) {
         try {
             return future.get(3, TimeUnit.SECONDS);
@@ -126,7 +127,7 @@ public class DiamondCache {
     }
 
     private Optional<Object> updateCache(Callable<Object> updater,
-                                         DiamondStone.DiamondAxis diamondAxis,
+                                         DiamondAxis diamondAxis,
                                          String diamondContent,
                                          Object... dynamics) {
         log.info("start to update cache {}", diamondAxis);
@@ -166,7 +167,7 @@ public class DiamondCache {
         executorService.shutdownNow();
     }
 
-    public Future<Object> updateDiamondCacheOnChange(final DiamondStone.DiamondAxis diamondAxis,
+    public Future<Object> updateDiamondCacheOnChange(final DiamondAxis diamondAxis,
                                                      final String diamondContent) {
         Future<Object> cacheOptional = cache.getIfPresent(diamondAxis);
         if (cacheOptional == null) return cacheOptional;
@@ -195,7 +196,7 @@ public class DiamondCache {
         return updater instanceof DynamicsAppliable;
     }
 
-    public void removeCacheSnapshot(DiamondStone.DiamondAxis diamondAxis) {
+    public void removeCacheSnapshot(DiamondAxis diamondAxis) {
         cache.invalidate(diamondAxis);
         snapshotMiner.removeAllCache(diamondAxis);
     }

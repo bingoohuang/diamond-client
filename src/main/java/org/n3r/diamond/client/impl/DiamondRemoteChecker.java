@@ -5,6 +5,7 @@ import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
 import com.google.common.util.concurrent.MoreExecutors;
 import org.apache.commons.lang3.StringUtils;
+import org.n3r.diamond.client.DiamondAxis;
 import org.n3r.diamond.client.DiamondListener;
 import org.n3r.diamond.client.DiamondStone;
 import org.n3r.diamond.client.cache.DiamondCache;
@@ -21,7 +22,7 @@ class DiamondRemoteChecker {
     private final DiamondCache diamondCache;
     private Logger log = LoggerFactory.getLogger(DiamondRemoteChecker.class);
 
-    private Cache<DiamondStone.DiamondAxis, Optional<String>> contentCache = CacheBuilder.newBuilder()
+    private Cache<DiamondAxis, Optional<String>> contentCache = CacheBuilder.newBuilder()
             .expireAfterAccess(15, TimeUnit.MINUTES)
             .maximumSize(10000)
             .build();
@@ -44,11 +45,11 @@ class DiamondRemoteChecker {
         managerConfig.randomDomainNamePos();
     }
 
-    public void addDiamondListener(DiamondStone.DiamondAxis diamondAxis, DiamondListener diamondListener) {
+    public void addDiamondListener(DiamondAxis diamondAxis, DiamondListener diamondListener) {
         diamondAllListener.addDiamondListener(diamondAxis, diamondListener);
     }
 
-    public void removeDiamondListener(DiamondStone.DiamondAxis diamondAxis, DiamondListener diamondListener) {
+    public void removeDiamondListener(DiamondAxis diamondAxis, DiamondListener diamondListener) {
         diamondAllListener.removeDiamondListener(diamondAxis, diamondListener);
     }
 
@@ -70,7 +71,7 @@ class DiamondRemoteChecker {
             String freshDataId = freshDataIdGroupPair.substring(0, middleIndex);
             String freshGroup = freshDataIdGroupPair.substring(middleIndex + 1);
 
-            DiamondStone.DiamondAxis diamondAxis = DiamondStone.DiamondAxis.makeAxis(freshGroup, freshDataId);
+            DiamondAxis diamondAxis = DiamondAxis.makeAxis(freshGroup, freshDataId);
             DiamondMeta diamondMeta = diamondSubscriber.getCachedMeta(diamondAxis);
 
             receiveDiamondContent(diamondMeta);
@@ -123,7 +124,7 @@ class DiamondRemoteChecker {
         return executor.submit(command);
     }
 
-    String retrieveRemote(DiamondStone.DiamondAxis diamondAxis, long timeout, boolean useContentCache) {
+    String retrieveRemote(DiamondAxis diamondAxis, long timeout, boolean useContentCache) {
         diamondSubscriber.start();
 
         if (useContentCache) {
@@ -245,7 +246,7 @@ class DiamondRemoteChecker {
     }
 
 
-    private String onSuccess(DiamondStone.DiamondAxis diamondAxis, DiamondMeta diamondMeta,
+    private String onSuccess(DiamondAxis diamondAxis, DiamondMeta diamondMeta,
                              DiamondHttpClient.GetDiamondResult httpMethod) {
         String diamondContent = httpMethod.getResponseContent();
 
@@ -276,7 +277,7 @@ class DiamondRemoteChecker {
         return onceTimeOut;
     }
 
-    private String onNotModified(DiamondStone.DiamondAxis diamondAxis, DiamondMeta diamondMeta,
+    private String onNotModified(DiamondAxis diamondAxis, DiamondMeta diamondMeta,
                                  DiamondHttpClient.GetDiamondResult httpMethod) {
         String md5 = httpMethod.getMd5();
         if (!diamondMeta.getMd5().equals(md5)) {
@@ -298,7 +299,7 @@ class DiamondRemoteChecker {
         if (pollingIntervalTime > 0) managerConfig.setPollingInterval(pollingIntervalTime);
     }
 
-    String getUriString(DiamondStone.DiamondAxis diamondAxis) {
+    String getUriString(DiamondAxis diamondAxis) {
         StringBuilder uriBuilder = new StringBuilder();
         uriBuilder.append(Constants.HTTP_URI_FILE)
                 .append("?" + Constants.DATAID + "=" + diamondAxis.getDataId())

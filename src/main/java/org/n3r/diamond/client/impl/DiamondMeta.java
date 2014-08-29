@@ -1,11 +1,11 @@
 package org.n3r.diamond.client.impl;
 
-import org.n3r.diamond.client.DiamondStone;
+import org.n3r.diamond.client.DiamondAxis;
 
 import java.util.concurrent.atomic.AtomicLong;
 
 class DiamondMeta {
-    private DiamondStone.DiamondAxis diamondAxis;
+    private DiamondAxis diamondAxis;
 
     private volatile String lastModifiedHeader = Constants.NULL;
     private volatile String md5 = Constants.NULL;
@@ -17,11 +17,11 @@ class DiamondMeta {
 
     private AtomicLong succCounter = new AtomicLong(0);
 
-    public DiamondMeta(DiamondStone.DiamondAxis diamondAxis) {
+    public DiamondMeta(DiamondAxis diamondAxis) {
         this.diamondAxis = diamondAxis;
     }
 
-    public DiamondStone.DiamondAxis getDiamondAxis() {
+    public DiamondAxis getDiamondAxis() {
         return diamondAxis;
     }
 

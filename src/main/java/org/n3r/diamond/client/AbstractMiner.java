@@ -10,8 +10,6 @@ import org.n3r.diamond.client.impl.PropertiesBasedMiner;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.IOException;
-import java.io.StringReader;
 import java.util.List;
 import java.util.Properties;
 import java.util.concurrent.TimeUnit;
@@ -187,16 +185,8 @@ public abstract class AbstractMiner implements Minerable {
 
     @Override
     public Properties getProperties(String group, String dataId) {
-        Properties properties = new Properties();
-        String string = getStone(group, dataId);
-        if (string != null) {
-            try {
-                properties.load(new StringReader(string));
-            } catch (IOException e) {
-                // ignore
-            }
-        }
-        return DiamondUtils.tryDecrypt(properties);
+        String stone = getStone(group, dataId);
+        return DiamondUtils.parseStoneToProperties(stone);
     }
 
     @Override
@@ -242,8 +232,8 @@ public abstract class AbstractMiner implements Minerable {
 
     @Override
     public int getInt(String group, String dataId) {
-        String stone = getStone(group, dataId);
-        if (stone == null) throw new DiamondException.Missing();
+        String stone = getStoneAndCheckMissing(group, dataId);
+
         try {
             return Integer.parseInt(stone);
         } catch (NumberFormatException e) {
@@ -260,6 +250,7 @@ public abstract class AbstractMiner implements Minerable {
     public int getInt(String group, String dataId, int defaultValue) {
         String stone = getStone(group, dataId);
         if (stone == null) return defaultValue;
+
         try {
             return Integer.parseInt(stone);
         } catch (NumberFormatException e) {
@@ -274,8 +265,8 @@ public abstract class AbstractMiner implements Minerable {
 
     @Override
     public long getLong(String group, String dataId) {
-        String stone = getStone(group, dataId);
-        if (stone == null) throw new DiamondException.Missing();
+        String stone = getStoneAndCheckMissing(group, dataId);
+
         try {
             return Long.parseLong(stone);
         } catch (NumberFormatException e) {
@@ -305,16 +296,12 @@ public abstract class AbstractMiner implements Minerable {
         return getBool(getDefaultGroupName(), key);
     }
 
-    public static boolean toBool(String str) {
-        return "true".equalsIgnoreCase(str) || "yes".equalsIgnoreCase(str)
-                || "on".equalsIgnoreCase(str) || "y".equalsIgnoreCase(str);
-    }
 
     @Override
     public boolean getBool(String group, String dataId) {
-        String stone = getStone(group, dataId);
-        if (stone == null) throw new DiamondException.Missing();
-        return toBool(stone);
+        String stone = getStoneAndCheckMissing(group, dataId);
+
+        return DiamondUtils.toBool(stone);
     }
 
     @Override
@@ -326,7 +313,7 @@ public abstract class AbstractMiner implements Minerable {
     public boolean getBool(String group, String dataId, boolean defaultValue) {
         String stone = getStone(group, dataId);
         if (stone == null) return defaultValue;
-        return toBool(stone);
+        return DiamondUtils.toBool(stone);
     }
 
     @Override
@@ -336,8 +323,7 @@ public abstract class AbstractMiner implements Minerable {
 
     @Override
     public float getFloat(String group, String dataId) {
-        String stone = getStone(group, dataId);
-        if (stone == null) throw new DiamondException.Missing();
+        String stone = getStoneAndCheckMissing(group, dataId);
         try {
             return Float.parseFloat(stone);
         } catch (NumberFormatException e) {
@@ -354,6 +340,7 @@ public abstract class AbstractMiner implements Minerable {
     public float getFloat(String group, String dataId, float defaultValue) {
         String stone = getStone(group, dataId);
         if (stone == null) return defaultValue;
+
         try {
             return Float.parseFloat(stone);
         } catch (NumberFormatException e) {
@@ -368,8 +355,8 @@ public abstract class AbstractMiner implements Minerable {
 
     @Override
     public double getDouble(String group, String dataId) {
-        String stone = getStone(group, dataId);
-        if (stone == null) throw new DiamondException.Missing();
+        String stone = getStoneAndCheckMissing(group, dataId);
+
         try {
             return Double.parseDouble(stone);
         } catch (NumberFormatException e) {
@@ -386,10 +373,18 @@ public abstract class AbstractMiner implements Minerable {
     public double getDouble(String group, String dataId, double defaultValue) {
         String stone = getStone(group, dataId);
         if (stone == null) return defaultValue;
+
         try {
             return Double.parseDouble(stone);
         } catch (NumberFormatException e) {
             throw new DiamondException.WrongType(e);
         }
     }
+
+    private String getStoneAndCheckMissing(String group, String dataId) {
+        String stone = getStone(group, dataId);
+        if (stone == null) throw new DiamondException.Missing();
+        return stone;
+    }
+
 }

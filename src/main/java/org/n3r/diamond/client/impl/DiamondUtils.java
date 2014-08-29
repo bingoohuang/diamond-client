@@ -5,6 +5,7 @@ import org.apache.commons.codec.digest.DigestUtils;
 import org.apache.commons.lang3.StringEscapeUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.joor.Reflect;
+import org.joor.ReflectException;
 import org.n3r.diamond.client.cache.ParamsAppliable;
 import org.n3r.diamond.client.cache.Spec;
 import org.n3r.diamond.client.cache.SpecParser;
@@ -12,6 +13,8 @@ import org.n3r.diamond.client.security.Pbe;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.IOException;
+import java.io.StringReader;
 import java.net.URLDecoder;
 import java.util.HashSet;
 import java.util.List;
@@ -22,8 +25,26 @@ import java.util.regex.Pattern;
 
 import static org.n3r.diamond.client.impl.Constants.LINE_SEPARATOR;
 
+@SuppressWarnings("unchecked")
 public class DiamondUtils {
     private static Logger log = LoggerFactory.getLogger(DiamondUtils.class);
+
+    public static boolean toBool(String str) {
+        return "true".equalsIgnoreCase(str) || "yes".equalsIgnoreCase(str)
+                || "on".equalsIgnoreCase(str) || "y".equalsIgnoreCase(str);
+    }
+
+    public static Properties parseStoneToProperties(String stone) {
+        Properties properties = new Properties();
+        if (stone != null) {
+            try {
+                properties.load(new StringReader(stone));
+            } catch (IOException e) {
+                // ignore
+            }
+        }
+        return tryDecrypt(properties);
+    }
 
     public static <T> T parseObject(String specContent, Class<T> clazz) {
         if (StringUtils.isBlank(specContent)) return null;
@@ -39,7 +60,13 @@ public class DiamondUtils {
     }
 
     private static <T> T createObject(Class<T> clazz, Spec spec) {
-        Object object = Reflect.on(spec.getName()).create().get();
+        Object object;
+        try {
+            object = Reflect.on(spec.getName()).create().get();
+        } catch (ReflectException e) {
+            return null;
+        }
+
         if (!clazz.isInstance(object)) return null;
 
         if (object instanceof ParamsAppliable)

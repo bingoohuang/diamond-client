@@ -5,7 +5,7 @@ import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.io.monitor.FileAlterationListenerAdaptor;
 import org.apache.commons.io.monitor.FileAlterationMonitor;
 import org.apache.commons.io.monitor.FileAlterationObserver;
-import org.n3r.diamond.client.DiamondStone;
+import org.n3r.diamond.client.DiamondAxis;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -74,7 +74,7 @@ class LocalDiamondMiner {
     }
 
 
-    String getFilePath(DiamondStone.DiamondAxis diamondAxis) {
+    String getFilePath(DiamondAxis diamondAxis) {
         File file = new File(rootPath + separator
                 + diamondAxis.getGroup() + separator
                 + diamondAxis.getDataId() + DIAMOND_STONE_EXT);

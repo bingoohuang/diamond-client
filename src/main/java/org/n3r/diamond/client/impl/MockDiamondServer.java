@@ -1,6 +1,6 @@
 package org.n3r.diamond.client.impl;
 
-import org.n3r.diamond.client.DiamondStone;
+import org.n3r.diamond.client.DiamondAxis;
 
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
@@ -8,8 +8,8 @@ import java.util.concurrent.Future;
 
 
 public class MockDiamondServer {
-    static ConcurrentHashMap<DiamondStone.DiamondAxis, String>
-            mocks = new ConcurrentHashMap<DiamondStone.DiamondAxis, String>();
+    static ConcurrentHashMap<DiamondAxis, String>
+            mocks = new ConcurrentHashMap<DiamondAxis, String>();
     static volatile boolean testMode = false;
 
     public static void setUpMockServer() {
@@ -29,11 +29,11 @@ public class MockDiamondServer {
     public static Future<Object> updateDiamond(String group, String dataId, String configInfo) {
         DiamondSubscriber diamondSubscriber = DiamondSubscriber.getInstance();
         DiamondRemoteChecker remoteChecker = diamondSubscriber.getDiamondRemoteChecker();
-        DiamondStone.DiamondAxis diamondAxis = DiamondStone.DiamondAxis.makeAxis(group, dataId);
+        DiamondAxis diamondAxis = DiamondAxis.makeAxis(group, dataId);
         return remoteChecker.onDiamondChanged(diamondSubscriber.getCachedMeta(diamondAxis), configInfo);
     }
 
-    public static String getDiamond(DiamondStone.DiamondAxis diamondAxis) {
+    public static String getDiamond(DiamondAxis diamondAxis) {
         return mocks.get(diamondAxis);
     }
 
@@ -47,14 +47,14 @@ public class MockDiamondServer {
     }
 
     public static void setConfigInfo(String dataId, String configInfo) {
-        setConfigInfo(DiamondStone.DiamondAxis.makeAxis(dataId), configInfo);
+        setConfigInfo(DiamondAxis.makeAxis(dataId), configInfo);
     }
 
     public static void setConfigInfo(String group, String dataId, String configInfo) {
-        setConfigInfo(DiamondStone.DiamondAxis.makeAxis(group, dataId), configInfo);
+        setConfigInfo(DiamondAxis.makeAxis(group, dataId), configInfo);
     }
 
-    private static void setConfigInfo(DiamondStone.DiamondAxis diamondAxis, String configInfo) {
+    private static void setConfigInfo(DiamondAxis diamondAxis, String configInfo) {
         mocks.put(diamondAxis, configInfo);
     }
 

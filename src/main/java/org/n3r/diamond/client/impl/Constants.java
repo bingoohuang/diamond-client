@@ -58,4 +58,6 @@ public interface Constants {
 
     String DIAMOND_STONE_EXT = ".diamond";
     String DIAMOND_CACHE_EXT = ".cache.";
+
+    String DIAMOND_EXTENDERS = "diamond.extenders";
 }

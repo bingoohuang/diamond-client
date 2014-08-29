@@ -44,6 +44,10 @@ public class ClientProperties {
         return NameServerMode.ByEtcHosts;
     }
 
+    public static String readDiamondExtenders() {
+        return properties.getProperty(Constants.DIAMOND_EXTENDERS);
+    }
+
     public static String getBasicAuth() {
         return properties.getProperty("BasicAuth");
     }
