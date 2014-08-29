@@ -10,6 +10,10 @@ import org.slf4j.impl.StaticLoggerBinder;
 public class LogbackLevelChanger implements LoggerLevelChangable {
     private Level transToLogback(LoggerLevel loggerLevel) {
         switch (loggerLevel) {
+            case OFF:
+                return Level.OFF;
+            case TRACE:
+                return Level.TRACE;
             case DEBUG:
                 return Level.DEBUG;
             case INFO:
@@ -18,6 +22,8 @@ public class LogbackLevelChanger implements LoggerLevelChangable {
                 return Level.WARN;
             case ERROR:
                 return Level.ERROR;
+            case ALL:
+                return Level.ALL;
         }
 
         throw new RuntimeException("should not reach here");
