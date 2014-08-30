@@ -3,6 +3,7 @@ package org.n3r.diamond.client.loglevel;
 import ch.qos.logback.classic.Level;
 import ch.qos.logback.classic.Logger;
 import ch.qos.logback.classic.LoggerContext;
+import org.apache.commons.io.FilenameUtils;
 import org.slf4j.ILoggerFactory;
 import org.slf4j.LoggerFactory;
 import org.slf4j.impl.StaticLoggerBinder;
@@ -54,13 +55,13 @@ public class LogbackLevelChanger implements LoggerLevelChangable {
     }
 
     @Override
-    public void changeSome(String loggerPrefix, LoggerLevel loggerLevel) {
+    public void changeSome(String loggerWildcard, LoggerLevel loggerLevel) {
         ILoggerFactory loggerFactory = StaticLoggerBinder.getSingleton().getLoggerFactory();
         if (!(loggerFactory instanceof LoggerContext)) return;
 
         Level newLevel = transToLogback(loggerLevel);
         for (Logger logger : ((LoggerContext) loggerFactory).getLoggerList()) {
-            if (logger.getName().startsWith(loggerPrefix))
+            if (FilenameUtils.wildcardMatch(logger.getName(), loggerWildcard))
                 changeToNewLevel(newLevel, logger);
         }
     }

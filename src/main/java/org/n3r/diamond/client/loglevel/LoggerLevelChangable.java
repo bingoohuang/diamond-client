@@ -5,5 +5,5 @@ public interface LoggerLevelChangable {
 
     void change(String loggerName, LoggerLevel loggerLevel);
 
-    void changeSome(String loggerPrefix, LoggerLevel loggerLevel);
+    void changeSome(String loggerWildcard, LoggerLevel loggerLevel);
 }

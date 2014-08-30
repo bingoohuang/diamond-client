@@ -32,9 +32,9 @@ public class LoggerLevelChangerExtender extends DiamondListenerAdapter implement
 
             if ("_all_".equals(loggerName)) {
                 loggerLevelChanger.changeAll(loggerLevel);
-            } else if (loggerName.endsWith("*")) {
-                String loggerPrefix = loggerName.substring(0, loggerName.length() - 1);
-                loggerLevelChanger.changeSome(loggerPrefix, loggerLevel);
+            } else if (loggerName.indexOf('*') >= 0 || loggerName.indexOf('?') >= 0) {
+                String loggerWildcard = loggerName.substring(0, loggerName.length() - 1);
+                loggerLevelChanger.changeSome(loggerWildcard, loggerLevel);
             } else {
                 loggerLevelChanger.change(loggerName, loggerLevel);
             }

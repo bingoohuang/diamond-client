@@ -42,9 +42,9 @@ public class LoggerLevelChanger implements LoggerLevelChangable {
     }
 
     @Override
-    public void changeSome(String loggerPrefix, LoggerLevel loggerLevel) {
+    public void changeSome(String loggerWildcard, LoggerLevel loggerLevel) {
         for (LoggerLevelChangable impl : impls) {
-            impl.changeSome(loggerPrefix, loggerLevel);
+            impl.changeSome(loggerWildcard, loggerLevel);
         }
     }
 }

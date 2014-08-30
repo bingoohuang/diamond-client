@@ -1,5 +1,6 @@
 package org.n3r.diamond.client.loglevel;
 
+import org.apache.commons.io.FilenameUtils;
 import org.apache.log4j.Level;
 import org.apache.log4j.LogManager;
 import org.apache.log4j.Logger;
@@ -50,18 +51,18 @@ public class Log4jLevelChanger implements LoggerLevelChangable {
     }
 
     @Override
-    public void changeSome(String loggerPrefix, LoggerLevel loggerLevel) {
+    public void changeSome(String loggerWildcard, LoggerLevel loggerLevel) {
         Level newLevel = transToLog4j(loggerLevel);
         Enumeration<Logger> currentLoggers = LogManager.getCurrentLoggers();
 
         while (currentLoggers.hasMoreElements()) {
             Logger logger = currentLoggers.nextElement();
-            if (logger.getName().startsWith(loggerPrefix))
+            if (FilenameUtils.wildcardMatch(logger.getName(), loggerWildcard))
                 changeToNewLevel(newLevel, logger);
         }
 
         Logger logger = LogManager.getRootLogger();
-        if (logger.getName().startsWith(loggerPrefix))
+        if (FilenameUtils.wildcardMatch(logger.getName(), loggerWildcard))
             changeToNewLevel(newLevel, logger);
     }
 
