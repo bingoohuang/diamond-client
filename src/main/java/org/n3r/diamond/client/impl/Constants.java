@@ -10,18 +10,18 @@ public interface Constants {
     int SC_OK = 200;
     int SC_NOT_MODIFIED = 304;
     int SC_NOT_FOUND = 404;
-    int SC_SERVICE_UNAVAILABLE = 503;
+    // int SC_SERVICE_UNAVAILABLE = 503;
 
     String DEFAULT_GROUP = "DEFAULT_GROUP";
 
-    String DEF_DOMAINNAME = "a.b.c";
+    String DEFAULT_DIAMOND_SERVER_NAME = "a.b.c";
 
-    int DEF_NAMESERVER_PORT = 17001;
+    int DEFAULT_NAME_SERVER_PORT = 17001;
     int DEFAULT_DIAMOND_SERVER_PORT = 17002;
 
     String NULL = "";
 
-    String DATAID = "dataId";
+    String DATA_ID = "dataId";
 
     String GROUP = "group";
 
@@ -41,9 +41,9 @@ public interface Constants {
 
     int POLLING_INTERVAL = 15; // seconds
 
-    int ONCE_TIMEOUT = 2000; // milli seconds
+    int ONCE_TIMEOUT = 3000; // milli seconds
 
-    int CONN_TIMEOUT = 2000; // milli seconds
+    int CONN_TIMEOUT = 3000; // milli seconds
 
     int RECV_WAIT_TIMEOUT = ONCE_TIMEOUT * 5; // milli seconds
 

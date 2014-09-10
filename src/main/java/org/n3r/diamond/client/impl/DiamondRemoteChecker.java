@@ -302,7 +302,7 @@ class DiamondRemoteChecker {
     String getUriString(DiamondAxis diamondAxis) {
         StringBuilder uriBuilder = new StringBuilder();
         uriBuilder.append(Constants.HTTP_URI_FILE)
-                .append("?" + Constants.DATAID + "=" + diamondAxis.getDataId())
+                .append("?" + Constants.DATA_ID + "=" + diamondAxis.getDataId())
                 .append("&" + Constants.GROUP + "=" + diamondAxis.getGroup());
 
         return uriBuilder.toString();

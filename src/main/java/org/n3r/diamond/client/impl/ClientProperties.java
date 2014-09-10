@@ -17,10 +17,10 @@ public class ClientProperties {
     public static HostAndPort readNameServerAddress() {
         String nameServerAddress = properties.getProperty(Constants.NAME_SERVER_ADDRESS);
         if (StringUtils.isNotEmpty(nameServerAddress)) {
-            return HostAndPort.fromString(nameServerAddress).withDefaultPort(Constants.DEF_NAMESERVER_PORT);
+            return HostAndPort.fromString(nameServerAddress).withDefaultPort(Constants.DEFAULT_NAME_SERVER_PORT);
         }
 
-        return HostAndPort.fromParts(Constants.DEF_DOMAINNAME, Constants.DEF_NAMESERVER_PORT);
+        return HostAndPort.fromParts(Constants.DEFAULT_DIAMOND_SERVER_NAME, Constants.DEFAULT_NAME_SERVER_PORT);
     }
 
     public static List<String> readDiamondServersAddress() {
