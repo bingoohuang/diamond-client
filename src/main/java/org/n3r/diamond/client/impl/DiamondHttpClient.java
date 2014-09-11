@@ -10,7 +10,6 @@ import org.apache.commons.httpclient.methods.PostMethod;
 import org.apache.commons.httpclient.params.HttpConnectionManagerParams;
 import org.apache.commons.httpclient.params.HttpMethodParams;
 import org.apache.commons.io.IOUtils;
-import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -105,8 +104,10 @@ class DiamondHttpClient {
         try {
             configureHttpMethod(getMethod, useContentCache, diamondMeta, onceTimeOut);
             int httpStatus = httpClient.executeMethod(getMethod);
-
             GetDiamondResult getDiamondResult = new GetDiamondResult();
+
+            if (!isDiamondServerHealth(getMethod)) httpStatus = Constants.SC_SERVICE_UNAVAILABLE;
+
             getDiamondResult.setHttpStatus(httpStatus);
 
             if (httpStatus == Constants.SC_OK) {
@@ -122,6 +123,11 @@ class DiamondHttpClient {
         } finally {
             getMethod.releaseConnection();
         }
+    }
+
+    private boolean isDiamondServerHealth(HttpMethod httpMethod) {
+        Header header = httpMethod.getResponseHeader("Diamond-Server");
+        return header != null && "Diamond-Server".equals(header.getValue());
     }
 
     private void setResponseContent(GetMethod getMethod, GetDiamondResult getDiamondResult) {
@@ -167,8 +173,9 @@ class DiamondHttpClient {
         try {
             resetHostConfig();
             int httpStatus = httpClient.executeMethod(postMethod);
-            Set<String> updateDataIdsInBody = httpStatus == Constants.SC_OK
-                    ? getUpdateDataIdsInBody(postMethod) : null;
+            if (!isDiamondServerHealth(postMethod)) httpStatus = Constants.SC_SERVICE_UNAVAILABLE;
+
+            Set<String> updateDataIdsInBody = httpStatus == Constants.SC_OK ? getUpdateDataIdsInBody(postMethod) : null;
             return new CheckResult(httpStatus, updateDataIdsInBody);
         } finally {
             postMethod.releaseConnection();

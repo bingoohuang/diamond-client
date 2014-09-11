@@ -10,7 +10,7 @@ public interface Constants {
     int SC_OK = 200;
     int SC_NOT_MODIFIED = 304;
     int SC_NOT_FOUND = 404;
-    // int SC_SERVICE_UNAVAILABLE = 503;
+    int SC_SERVICE_UNAVAILABLE = 503;
 
     String DEFAULT_GROUP = "DEFAULT_GROUP";
 
