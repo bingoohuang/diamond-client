@@ -52,14 +52,15 @@ class DiamondHttpClient {
         if (Strings.isNullOrEmpty(basicAuth)) return;
 
         List<String> splits = Splitter.on(':').trimResults().splitToList(basicAuth);
+
         if (splits.size() < 2) return;
         String userName = splits.get(0);
         String passWord = splits.get(1);
 
         httpClient.getParams().setAuthenticationPreemptive(true);
-        Credentials defaultcreds = new UsernamePasswordCredentials(userName, passWord);
+        Credentials credentials = new UsernamePasswordCredentials(userName, passWord);
         AuthScope authScope = new AuthScope(host, port, AuthScope.ANY_REALM);
-        httpClient.getState().setCredentials(authScope, defaultcreds);
+        httpClient.getState().setCredentials(authScope, credentials);
     }
 
     private void resetHostConfig() {
