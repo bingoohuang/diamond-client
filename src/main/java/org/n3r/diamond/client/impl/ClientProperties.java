@@ -1,13 +1,14 @@
 package org.n3r.diamond.client.impl;
 
 import com.google.common.base.Splitter;
+import com.google.common.collect.Sets;
 import com.google.common.net.HostAndPort;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.List;
 import java.util.Properties;
+import java.util.Set;
 
 public class ClientProperties {
     static Logger log = LoggerFactory.getLogger(ClientProperties.class);
@@ -23,10 +24,10 @@ public class ClientProperties {
         return HostAndPort.fromParts(Constants.DEFAULT_DIAMOND_SERVER_NAME, Constants.DEFAULT_NAME_SERVER_PORT);
     }
 
-    public static List<String> readDiamondServersAddress() {
+    public static Set<String> readDiamondServersAddress() {
         String diamondServersAddress = properties.getProperty(Constants.SERVER_ADDRESS, "");
         Splitter splitter = Splitter.onPattern("\\s+").omitEmptyStrings().trimResults();
-        List<String> addresses = splitter.splitToList(diamondServersAddress);
+        Set<String> addresses = Sets.newHashSet(splitter.splitToList(diamondServersAddress));
 
         if (addresses.size() > 0)
             log.info("got diamond servers {} from config {}", addresses, Constants.SERVER_ADDRESS);

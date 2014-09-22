@@ -1,6 +1,5 @@
 package org.n3r.diamond.client.impl;
 
-import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 import com.google.common.net.HostAndPort;
 import org.apache.commons.httpclient.*;
@@ -24,20 +23,23 @@ import java.util.concurrent.TimeUnit;
 import static org.n3r.diamond.client.impl.ClientProperties.*;
 
 class ServerAddressesMiner {
+
     private Logger log = LoggerFactory.getLogger(ServerAddressesMiner.class);
 
     private volatile boolean running;
     private volatile DiamondManagerConf diamondManagerConf;
 
     private HttpClient httpClient;
+    private final DiamondHttpClient diamondHttpClient;
     private SimpleHttpConnectionManager connectionManager;
 
     private ScheduledExecutorService scheduledExecutor;
     private int asyncAcquireIntervalInSec = 300;
 
-    public ServerAddressesMiner(DiamondManagerConf diamondManagerConf, ScheduledExecutorService scheduledExecutor) {
+    public ServerAddressesMiner(DiamondManagerConf diamondManagerConf, ScheduledExecutorService scheduledExecutor, DiamondHttpClient diamondHttpClient) {
         this.diamondManagerConf = diamondManagerConf;
         this.scheduledExecutor = scheduledExecutor;
+        this.diamondHttpClient = diamondHttpClient;
     }
 
     public synchronized void start() {
@@ -90,9 +92,9 @@ class ServerAddressesMiner {
     }
 
     private boolean readClientServerAddress() {
-        List<String> serverAddress = readDiamondServersAddress();
+        Set<String> serverAddress = readDiamondServersAddress();
         if (serverAddress.size() > 0) {
-            diamondManagerConf.setDiamondServers(serverAddress);
+            diamondManagerConf.setDiamondServers(serverAddress, diamondHttpClient);
             return true;
         }
 
@@ -167,8 +169,7 @@ class ServerAddressesMiner {
             List<String> newDomainNameList = IOUtils.readLines(httpMethod.getResponseBodyAsStream());
             if (newDomainNameList.size() > 0) {
                 log.info("got diamond servers from NameServer");
-                Set<String> set = Sets.newHashSet(newDomainNameList);
-                diamondManagerConf.setDiamondServers(Lists.newArrayList(set));
+                diamondManagerConf.setDiamondServers(Sets.newHashSet(newDomainNameList), diamondHttpClient);
 
                 saveServerAddressesToLocal();
                 return true;

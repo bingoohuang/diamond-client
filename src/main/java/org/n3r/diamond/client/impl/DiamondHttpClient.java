@@ -15,6 +15,7 @@ import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.net.ConnectException;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -63,13 +64,14 @@ class DiamondHttpClient {
         httpClient.getState().setCredentials(authScope, credentials);
     }
 
-    private void resetHostConfig() {
-        String hostPort = diamondManagerConf.getDomainName();
+    public void resetHostConfig(String hostPort) {
         HostAndPort hostAndPort = HostAndPort.fromString(hostPort);
         int portOrDefault = hostAndPort.getPortOrDefault(Constants.DEFAULT_DIAMOND_SERVER_PORT);
         HostConfiguration hostConfiguration = httpClient.getHostConfiguration();
         String hostText = hostAndPort.getHostText();
         hostConfiguration.setHost(hostText, portOrDefault);
+
+        log.debug("use host {}:{}", hostText, portOrDefault);
 
         setBasicAuth(hostText, portOrDefault);
     }
@@ -91,8 +93,6 @@ class DiamondHttpClient {
         HttpMethodParams params = new HttpMethodParams();
         params.setSoTimeout((int) onceTimeOut);
         httpMethod.setParams(params);
-
-        resetHostConfig();
     }
 
     public HttpState getState() {
@@ -104,6 +104,7 @@ class DiamondHttpClient {
         GetMethod getMethod = new GetMethod(uri);
         try {
             configureHttpMethod(getMethod, useContentCache, diamondMeta, onceTimeOut);
+
             int httpStatus = httpClient.executeMethod(getMethod);
             GetDiamondResult getDiamondResult = new GetDiamondResult();
 
@@ -121,6 +122,10 @@ class DiamondHttpClient {
             }
 
             return getDiamondResult;
+        } catch (ConnectException e) {
+            HostConfiguration hostConfiguration = httpClient.getHostConfiguration();
+            log.error("connection to {}:{} error {}", hostConfiguration.getHost(), hostConfiguration.getPort(), e.getMessage());
+            throw e;
         } finally {
             getMethod.releaseConnection();
         }
@@ -172,12 +177,16 @@ class DiamondHttpClient {
         postMethod.setParams(params);
 
         try {
-            resetHostConfig();
+
             int httpStatus = httpClient.executeMethod(postMethod);
             if (!isDiamondServerHealth(postMethod)) httpStatus = Constants.SC_SERVICE_UNAVAILABLE;
 
             Set<String> updateDataIdsInBody = httpStatus == Constants.SC_OK ? getUpdateDataIdsInBody(postMethod) : null;
             return new CheckResult(httpStatus, updateDataIdsInBody);
+        } catch (ConnectException e) {
+            HostConfiguration hostConfiguration = httpClient.getHostConfiguration();
+            log.error("connection to {}:{} error {}", hostConfiguration.getHost(), hostConfiguration.getPort(), e.getMessage());
+            throw e;
         } finally {
             postMethod.releaseConnection();
         }
@@ -189,7 +198,7 @@ class DiamondHttpClient {
             String modifiedDataIdsString = httpMethod.getResponseBodyAsString();
             return DiamondUtils.convertStringToSet(modifiedDataIdsString);
         } catch (Exception e) {
-
+            log.error("getUpdateDataIdsInBody error", e);
         }
         return new HashSet<String>();
     }

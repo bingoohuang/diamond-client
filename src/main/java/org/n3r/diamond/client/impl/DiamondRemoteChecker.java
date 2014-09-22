@@ -30,18 +30,19 @@ class DiamondRemoteChecker {
     private volatile DiamondAllListener diamondAllListener = new DiamondAllListener();
 
 
-    private DiamondHttpClient httpClient;
+    private DiamondHttpClient diamondHttpClient;
     private final DiamondManagerConf managerConfig;
     private final DiamondSubscriber diamondSubscriber;
 
     public DiamondRemoteChecker(DiamondSubscriber diamondSubscriber,
                                 DiamondManagerConf managerConfig,
-                                DiamondCache diamondCache) {
+                                DiamondCache diamondCache,
+                                DiamondHttpClient diamondHttpClient) {
         this.diamondSubscriber = diamondSubscriber;
         this.managerConfig = managerConfig;
         this.diamondCache = diamondCache;
+        this.diamondHttpClient = diamondHttpClient;
 
-        httpClient = new DiamondHttpClient(managerConfig);
     }
 
     public void addDiamondListener(DiamondAxis diamondAxis, DiamondListener diamondListener) {
@@ -54,7 +55,7 @@ class DiamondRemoteChecker {
 
 
     public void shutdown() {
-        httpClient.shutdown();
+        diamondHttpClient.shutdown();
     }
 
     public void checkRemote() {
@@ -112,7 +113,7 @@ class DiamondRemoteChecker {
                     diamondAllListener.accept(diamondStone);
                     return diamondCache.updateDiamondCacheOnChange(diamondStone.getDiamondAxis(), content);
                 } catch (Throwable t) {
-                    log.error("onDiamondChanged error，{}", diamondMeta.getDiamondAxis(), t);
+                    log.error("onDiamondChanged {} with error {}", diamondMeta.getDiamondAxis(), t.getMessage());
                 }
                 return null;
             }
@@ -142,7 +143,7 @@ class DiamondRemoteChecker {
         Exception lastException = null; // for reduce logs
         int lastHttpStatus = -1;
         while (0 == timeout || timeout > costTime) {
-            if (triedTimes > 0) managerConfig.rotateToNextDomain();
+            if (triedTimes > 0) managerConfig.rotateToNextDomain(diamondHttpClient);
 
             if (triedTimes > totalRetryTimes + 1) {
                 log.warn("reached the max retry times");
@@ -160,7 +161,7 @@ class DiamondRemoteChecker {
             try {
                 DiamondMeta diamondMeta = diamondSubscriber.getCachedMeta(diamondAxis);
                 DiamondHttpClient.GetDiamondResult getDiamondResult;
-                getDiamondResult = httpClient.getDiamond(uri, useContentCache, diamondMeta, onceTimeOut);
+                getDiamondResult = diamondHttpClient.getDiamond(uri, useContentCache, diamondMeta, onceTimeOut);
 
                 int httpStatus = getDiamondResult.getHttpStatus();
                 switch (httpStatus) {
@@ -177,7 +178,7 @@ class DiamondRemoteChecker {
                         return null;
                     default: {
                         if (httpStatus != lastHttpStatus) {
-                            log.warn("{}: HTTP State: {} : {} ", diamondAxis, httpStatus, httpClient.getState());
+                            log.warn("{}: HTTP State: {} : {} ", diamondAxis, httpStatus, diamondHttpClient.getState());
                             lastHttpStatus = httpStatus;
                         }
                     }
@@ -204,14 +205,14 @@ class DiamondRemoteChecker {
         int lastHttpStatus = -1; // for reduce logs
         Exception lastException = null;
         while (0 == timeout || timeout > costTime) {
-            if (costTime > 0)  managerConfig.rotateToNextDomain();
+            if (costTime > 0)  managerConfig.rotateToNextDomain(diamondHttpClient);
 
             long onceTimeOut = getOnceTimeOut(costTime, timeout);
             costTime += onceTimeOut;
 
             try {
                 DiamondHttpClient.CheckResult checkResult;
-                checkResult = httpClient.checkUpdateDataIds(probeUpdateString, onceTimeOut);
+                checkResult = diamondHttpClient.checkUpdateDataIds(probeUpdateString, onceTimeOut);
                 int httpStatus = checkResult.getHttpStatus();
                 switch (httpStatus) {
                     case Constants.SC_OK:

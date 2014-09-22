@@ -66,13 +66,15 @@ public class DiamondSubscriber implements Closeable {
 
         localDiamondMiner.start(managerConfig);
 
-        serverAddressesMiner = new ServerAddressesMiner(managerConfig, scheduler);
+        DiamondHttpClient diamondHttpClient = new DiamondHttpClient(managerConfig);
+
+        serverAddressesMiner = new ServerAddressesMiner(managerConfig, scheduler, diamondHttpClient);
         serverAddressesMiner.start();
 
         snapshotMiner = new SnapshotMiner(managerConfig);
         diamondCache = new DiamondCache(snapshotMiner);
 
-        diamondRemoteChecker = new DiamondRemoteChecker(this, managerConfig, diamondCache);
+        diamondRemoteChecker = new DiamondRemoteChecker(this, managerConfig, diamondCache, diamondHttpClient);
 
         running = true;
 
@@ -100,7 +102,7 @@ public class DiamondSubscriber implements Closeable {
             public void run() {
                 new DiamondExtenderManager().loadDiamondExtenders();
             }
-        }, 3, TimeUnit.SECONDS);
+        }, 5, TimeUnit.SECONDS);
 
         scheduler.scheduleWithFixedDelay(new Runnable() {
             public void run() {
@@ -195,7 +197,7 @@ public class DiamondSubscriber implements Closeable {
 
             return diamondContent;
         } catch (Exception e) {
-            log.error("getSnapshot error diamondAxis={}", diamondAxis, e);
+            log.error("getSnapshot diamondAxis {} error {}", diamondAxis, e.getMessage());
             return null;
         }
     }
