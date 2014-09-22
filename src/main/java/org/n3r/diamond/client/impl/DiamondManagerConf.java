@@ -83,6 +83,7 @@ public class DiamondManagerConf {
 
     public void setDiamondServers(List<String> diamondServers) {
         this.diamondServers = new LinkedList<String>(diamondServers);
+        randomDomainNamePos();
     }
 
     public void addDomainName(String domainName) {
@@ -133,7 +134,7 @@ public class DiamondManagerConf {
         return diamondServers.get(domainNamePos.get());
     }
 
-    public void randomDomainNamePos() {
+    private void randomDomainNamePos() {
         int diamondServerNum = diamondServers.size();
         if (diamondServerNum > 1) {
             domainNamePos.set(new Random().nextInt(diamondServerNum));

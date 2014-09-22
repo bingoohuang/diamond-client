@@ -16,7 +16,6 @@ import org.slf4j.LoggerFactory;
 
 import java.io.File;
 import java.util.ArrayList;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.concurrent.ScheduledExecutorService;
@@ -24,8 +23,8 @@ import java.util.concurrent.TimeUnit;
 
 import static org.n3r.diamond.client.impl.ClientProperties.*;
 
-class ServerAddrMiner {
-    private Logger log = LoggerFactory.getLogger(ServerAddrMiner.class);
+class ServerAddressesMiner {
+    private Logger log = LoggerFactory.getLogger(ServerAddressesMiner.class);
 
     private volatile boolean running;
     private volatile DiamondManagerConf diamondManagerConf;
@@ -34,9 +33,9 @@ class ServerAddrMiner {
     private SimpleHttpConnectionManager connectionManager;
 
     private ScheduledExecutorService scheduledExecutor;
-    private int asynAcquireIntervalInSec = 300;
+    private int asyncAcquireIntervalInSec = 300;
 
-    public ServerAddrMiner(DiamondManagerConf diamondManagerConf, ScheduledExecutorService scheduledExecutor) {
+    public ServerAddressesMiner(DiamondManagerConf diamondManagerConf, ScheduledExecutorService scheduledExecutor) {
         this.diamondManagerConf = diamondManagerConf;
         this.scheduledExecutor = scheduledExecutor;
     }
@@ -51,8 +50,8 @@ class ServerAddrMiner {
         }
 
         initHttpClient();
-        synAcquireServerAddress();
-        asynAcquireServerAddress();
+        syncAcquireServerAddresses();
+        asyncAcquireServerAddresses();
     }
 
     public synchronized void stop() {
@@ -81,11 +80,8 @@ class ServerAddrMiner {
         httpClient.getParams().setParameter(HttpMethodParams.RETRY_HANDLER, retryHandler);
     }
 
-    protected void synAcquireServerAddress() {
-        if (readNameServerMode() != NameServerMode.Off && acquireServerAddr()) {
-            saveServerAddrToLocal();
-            return;
-        }
+    protected void syncAcquireServerAddresses() {
+        if (readNameServerMode() != NameServerMode.Off && acquireServerAddresses()) return;
 
         if (readClientServerAddress()) return;
         if (reloadServerAddresses()) return;
@@ -103,17 +99,17 @@ class ServerAddrMiner {
         return false;
     }
 
-    protected void asynAcquireServerAddress() {
+    protected void asyncAcquireServerAddresses() {
         if (readNameServerMode() == NameServerMode.Off) return;
 
         scheduledExecutor.scheduleWithFixedDelay(new Runnable() {
             public void run() {
-                if (acquireServerAddr()) saveServerAddrToLocal();
+                acquireServerAddresses();
             }
-        }, asynAcquireIntervalInSec, asynAcquireIntervalInSec, TimeUnit.SECONDS);
+        }, asyncAcquireIntervalInSec, asyncAcquireIntervalInSec, TimeUnit.SECONDS);
     }
 
-    void saveServerAddrToLocal() {
+    void saveServerAddressesToLocal() {
         List<String> domainNameList = new ArrayList<String>(diamondManagerConf.getDiamondServers());
         try {
             FileUtils.writeLines(getLocalServerAddressFile(), domainNameList);
@@ -153,15 +149,10 @@ class ServerAddrMiner {
         return new File(FilenameUtils.concat(directory, Constants.SERVER_ADDRESS));
     }
 
-    private boolean acquireServerAddr() {
-        HostAndPort hostAndPort = readNameServerAddress();
-        if (hostAndPort == null) {
-            log.error("no name server specified");
-            return false;
-        }
+    private boolean acquireServerAddresses() {
+        HostAndPort hostAndPort = readNameServerAddresses();
 
         httpClient.getHostConfiguration().setHost(hostAndPort.getHostText(), hostAndPort.getPort());
-
         HttpMethod httpMethod = new GetMethod(Constants.DIAMOND_HTTP_URI);
         HttpMethodParams params = new HttpMethodParams();
         params.setSoTimeout(diamondManagerConf.getOnceTimeout());
@@ -178,6 +169,8 @@ class ServerAddrMiner {
                 log.info("got diamond servers from NameServer");
                 Set<String> set = Sets.newHashSet(newDomainNameList);
                 diamondManagerConf.setDiamondServers(Lists.newArrayList(set));
+
+                saveServerAddressesToLocal();
                 return true;
             }
         } catch (Exception e) {

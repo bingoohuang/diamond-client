@@ -14,7 +14,7 @@ public class ClientProperties {
 
     static Properties properties = Props.tryProperties("diamond-client.properties", ".diamond-client");
 
-    public static HostAndPort readNameServerAddress() {
+    public static HostAndPort readNameServerAddresses() {
         String nameServerAddress = properties.getProperty(Constants.NAME_SERVER_ADDRESS);
         if (StringUtils.isNotEmpty(nameServerAddress)) {
             return HostAndPort.fromString(nameServerAddress).withDefaultPort(Constants.DEFAULT_NAME_SERVER_PORT);

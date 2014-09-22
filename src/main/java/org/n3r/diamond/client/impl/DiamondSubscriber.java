@@ -39,7 +39,7 @@ public class DiamondSubscriber implements Closeable {
 
     private ScheduledExecutorService scheduler;
     private LocalDiamondMiner localDiamondMiner = new LocalDiamondMiner();
-    private ServerAddrMiner serverAddrMiner;
+    private ServerAddressesMiner serverAddressesMiner;
     private SnapshotMiner snapshotMiner;
     private DiamondCache diamondCache;
 
@@ -66,8 +66,8 @@ public class DiamondSubscriber implements Closeable {
 
         localDiamondMiner.start(managerConfig);
 
-        serverAddrMiner = new ServerAddrMiner(managerConfig, scheduler);
-        serverAddrMiner.start();
+        serverAddressesMiner = new ServerAddressesMiner(managerConfig, scheduler);
+        serverAddressesMiner.start();
 
         snapshotMiner = new SnapshotMiner(managerConfig);
         diamondCache = new DiamondCache(snapshotMiner);
@@ -129,7 +129,7 @@ public class DiamondSubscriber implements Closeable {
         log.warn("start to close DiamondSubscriber");
 
         localDiamondMiner.stop();
-        serverAddrMiner.stop();
+        serverAddressesMiner.stop();
 
         scheduler.shutdownNow();
 

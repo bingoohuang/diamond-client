@@ -42,7 +42,6 @@ class DiamondRemoteChecker {
         this.diamondCache = diamondCache;
 
         httpClient = new DiamondHttpClient(managerConfig);
-        managerConfig.randomDomainNamePos();
     }
 
     public void addDiamondListener(DiamondAxis diamondAxis, DiamondListener diamondListener) {
