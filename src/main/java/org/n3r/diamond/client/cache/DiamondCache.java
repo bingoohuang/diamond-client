@@ -1,6 +1,7 @@
 package org.n3r.diamond.client.cache;
 
 import com.google.common.base.Optional;
+import com.google.common.base.Throwables;
 import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
 import com.google.common.util.concurrent.Futures;
@@ -38,7 +39,7 @@ public class DiamondCache {
         try {
             cachedObject = cache.get(diamondAxis, callable);
         } catch (ExecutionException e) {
-            log.error("get cache {} failed", diamondContent, e);
+            log.error("get cache {} failed with error {}", diamondContent, Throwables.getStackTraceAsString(e));
             return null;
         }
 
@@ -52,7 +53,7 @@ public class DiamondCache {
         try {
             subCachedObject = subCache.get(dynamicsHasCode, dynamicCallable);
         } catch (ExecutionException e) {
-            log.error("get dynamic cache {} failed", diamondContent, e);
+            log.error("get dynamic cache {} failed with {}", diamondContent, Throwables.getStackTraceAsString(e));
             return null;
         }
 
@@ -112,7 +113,7 @@ public class DiamondCache {
             Optional<Object> object = snapshotMiner.getCache(diamondAxis, dynamicsHasCode);
             if (object != null) return object.orNull();
         } catch (Exception e) {
-            log.error("update cache {} failed", diamondContent, e);
+            log.error("update cache {} failed with error {}", diamondContent, Throwables.getStackTraceAsString(e));
         }
 
         try {
@@ -120,7 +121,7 @@ public class DiamondCache {
         } catch (InterruptedException e) {
             e.printStackTrace();
         } catch (Exception e) {
-            log.error("update cache {} failed", diamondContent, e);
+            log.error("update cache {} failed with error {}", diamondContent, Throwables.getStackTraceAsString(e));
         }
 
         return null;

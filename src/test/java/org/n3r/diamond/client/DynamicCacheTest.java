@@ -41,19 +41,19 @@ public class DynamicCacheTest {
         FileUtils.writeStringToFile(file, "\"13:12:33.435\"");
 
         MockDiamondServer.setConfigInfo("dynamicCache", "@org.n3r.diamond.client.DemoDynamicUpdater");
-        String now = DiamondMiner.getDynamicCache("dynamicCache", "HH:mm:ss.SSS");
+        String now = new Miner().getDynamicCache("dynamicCache", "HH:mm:ss.SSS");
         assertThat(now, is("13:12:33.435"));
-        String now2 = DiamondMiner.getDynamicCache("dynamicCache", "HH:mm:ss.SSS");
+        String now2 = new Miner().getDynamicCache("dynamicCache", "HH:mm:ss.SSS");
         assertThat(now2, is(not("13:12:33.435")));
 
         Future<Object> future = MockDiamondServer.updateDiamond("dynamicCache", "@org.n3r.diamond.client.DemoDynamicUpdater @XXX");
         future.get();
         Utils.sleepMillis(100);
-        String now3 = DiamondMiner.getDynamicCache("dynamicCache", "HH:mm:ss.SSS");
+        String now3 = new Miner().getDynamicCache("dynamicCache", "HH:mm:ss.SSS");
         assertThat(now3, is(not(now2)));
 
         MockDiamondServer.setConfigInfo("staticCache", "@org.n3r.diamond.client.DemoUpdater(xx,yy)");
-        DemoCacheBean bean = DiamondMiner.getCache("staticCache");
+        DemoCacheBean bean = new Miner().getCache("staticCache");
         System.out.println(bean);
     }
 }

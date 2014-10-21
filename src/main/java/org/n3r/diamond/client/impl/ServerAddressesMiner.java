@@ -1,5 +1,6 @@
 package org.n3r.diamond.client.impl;
 
+import com.google.common.base.Throwables;
 import com.google.common.collect.Sets;
 import com.google.common.net.HostAndPort;
 import org.apache.commons.httpclient.*;
@@ -177,8 +178,8 @@ class ServerAddressesMiner {
                 return true;
             }
         } catch (Exception e) {
-            log.error("failed to get diamond servers from {} by {}",
-                    httpClient.getHostConfiguration().getHost(), e.getMessage());
+            log.error("failed to get diamond servers from {} with error {}",
+                    httpClient.getHostConfiguration().getHost(), Throwables.getStackTraceAsString(e));
         } finally {
             httpMethod.releaseConnection();
         }
