@@ -15,6 +15,7 @@ import org.slf4j.LoggerFactory;
 
 import java.io.File;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.concurrent.ScheduledExecutorService;
@@ -136,7 +137,7 @@ class ServerAddressesMiner {
             }
 
             if (diamondManagerConf.getDiamondServers().size() > 0) {
-                log.info("successfully to read diamond server addresses from local");
+                log.info("successfully to read diamond server addresses {} from local", addresses);
                 return true;
             }
         } catch (Exception e) {
@@ -162,14 +163,15 @@ class ServerAddressesMiner {
 
         try {
             if (Constants.SC_OK != httpClient.executeMethod(httpMethod)) {
-                log.warn("no diamond servers available\");");
+                log.warn("no diamond servers available from {}.", httpClient.getHostConfiguration().getHost());
                 return false;
             }
 
             List<String> newDomainNameList = IOUtils.readLines(httpMethod.getResponseBodyAsStream());
             if (newDomainNameList.size() > 0) {
-                log.info("got diamond servers from NameServer");
-                diamondManagerConf.setDiamondServers(Sets.newHashSet(newDomainNameList), diamondHttpClient);
+                HashSet<String> diamondServers = Sets.newHashSet(newDomainNameList);
+                log.info("got diamond servers {} from NameServer {}", diamondServers, httpClient.getHostConfiguration().getHost());
+                diamondManagerConf.setDiamondServers(diamondServers, diamondHttpClient);
 
                 saveServerAddressesToLocal();
                 return true;
