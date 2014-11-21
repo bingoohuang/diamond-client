@@ -2,6 +2,7 @@ package org.n3r.diamond.client.impl;
 
 import org.apache.commons.lang3.StringUtils;
 import org.n3r.diamond.client.DiamondMiner;
+import org.n3r.diamond.client.Miner;
 
 import java.util.HashSet;
 import java.util.Set;
@@ -195,7 +196,7 @@ public abstract class DiamondSubstituter {
      * @return the resolved value, of <code>null</code> if none
      */
     protected static String resolveHolder(String holder, String defaultValue) {
-        int seperate = holder.indexOf('/');
+        int seperate = holder.indexOf('^');
         String group = Constants.DEFAULT_GROUP;
         String dataId = holder;
         if (seperate > 0 && seperate < holder.length() - 1) {
@@ -203,9 +204,16 @@ public abstract class DiamondSubstituter {
             dataId = holder.substring(seperate + 1);
         }
 
-        String value = DiamondMiner.getStone(group, dataId);
-        if (value != null) return value;
-
+        int propKeyPos = dataId.indexOf('^');
+        if (propKeyPos > 0) {
+            String subDataId = dataId.substring(0, propKeyPos);
+            String propKey = dataId.substring(propKeyPos + 1);
+            String value = new Miner().getMiner(group, subDataId).getString(propKey);
+            if (value != null) return value;
+        } else {
+            String value = new Miner().getStone(group, dataId);
+            if (value != null) return value;
+        }
 
         return defaultValue;
     }
