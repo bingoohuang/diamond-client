@@ -69,7 +69,7 @@ public class DiamondCache {
                 return executorService.submit(new Callable<Object>() {
                     @Override
                     public Object call() throws Exception {
-                        Callable<Object> updater = createUpdater(diamondContent, dynamics);
+                        Callable<Object> updater = createUpdater(diamondAxis, diamondContent, dynamics);
                         if (updater == null) return null;
 
                         Optional<Object> objectOptional = updateCache(updater, diamondAxis, diamondContent, dynamics);
@@ -89,7 +89,7 @@ public class DiamondCache {
                 return executorService.submit(new Callable<Object>() {
                     @Override
                     public Object call() throws Exception {
-                        Callable<Object> updater = createUpdater(diamondContent, dynamics);
+                        Callable<Object> updater = createUpdater(diamondAxis, diamondContent, dynamics);
                         if (updater == null) return null;
 
                         if (isDynamicApplicable(updater)) {
@@ -150,8 +150,8 @@ public class DiamondCache {
     }
 
 
-    private Callable<Object> createUpdater(String diamondContent, Object... dynamics) {
-        String substitute = DiamondSubstituter.substitute(diamondContent, true);
+    private Callable<Object> createUpdater(final DiamondAxis diamondAxis, String diamondContent, Object... dynamics) {
+        String substitute = DiamondSubstituter.substitute(diamondContent, true, diamondAxis.group, diamondAxis.dataId, null);
         Callable object = DiamondUtils.parseObject(substitute, Callable.class);
         if (object == null) {
             log.error("{} cannot be parsed as Callable", diamondContent);
@@ -176,7 +176,7 @@ public class DiamondCache {
         Callable<Object> task = new Callable<Object>() {
             @Override
             public Object call() throws Exception {
-                Callable<Object> updater = createUpdater(diamondContent);
+                Callable<Object> updater = createUpdater(diamondAxis, diamondContent);
                 if (updater == null) return null;
 
                 if (isDynamicApplicable(updater)) {

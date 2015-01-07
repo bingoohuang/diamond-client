@@ -20,7 +20,7 @@ public class Miner extends AbstractMiner implements CacheMinerable {
         String diamond = new DiamondManager(group, dataId).getDiamond();
         if (diamond == null) return null;
 
-        return DiamondSubstituter.substitute(diamond, true);
+        return DiamondSubstituter.substitute(diamond, true, group, dataId, null);
     }
 
     @Override

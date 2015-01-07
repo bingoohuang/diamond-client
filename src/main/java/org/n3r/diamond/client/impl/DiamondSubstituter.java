@@ -1,10 +1,10 @@
 package org.n3r.diamond.client.impl;
 
 import org.apache.commons.lang3.StringUtils;
-import org.n3r.diamond.client.DiamondMiner;
 import org.n3r.diamond.client.Miner;
 
 import java.util.HashSet;
+import java.util.Properties;
 import java.util.Set;
 
 
@@ -50,11 +50,11 @@ public abstract class DiamondSubstituter {
      * Holders again).
      *
      */
-    public static String substitute(String strVal, boolean ignoreBadHolders) {
+    public static String substitute(String strVal, boolean ignoreBadHolders, String group, String dataId, Properties lastProperties) {
         if (strVal == null) return null;
 
         Set<String> visitedHolders = new HashSet<String>();
-        return substitute(strVal, visitedHolders, ignoreBadHolders);
+        return substitute(strVal, visitedHolders, ignoreBadHolders, group, dataId, lastProperties);
     }
 
     /**
@@ -68,7 +68,7 @@ public abstract class DiamondSubstituter {
      *                         between Holders). Only non-null if we're parsing a nested Holder.
      */
     public static String substitute(String strVal, Set<String> visitedHolders,
-                                    boolean ignoreBadHolders) {
+                                    boolean ignoreBadHolders, String group, String dataId, Properties lastProperties) {
         if (strVal == null) return null;
 
         StringBuffer buf = new StringBuffer(strVal);
@@ -89,13 +89,13 @@ public abstract class DiamondSubstituter {
                             + holder + "' in property definitions");
                 }
                 // Recursive invocation, parsing Holders contained in the Holder key.
-                holder = substitute(holder, visitedHolders, ignoreBadHolders);
+                holder = substitute(holder, visitedHolders, ignoreBadHolders, group, dataId, lastProperties);
                 // Now obtain the value for the fully resolved key...
-                String propVal = resolveHolder(holder, SYS_PROPS_MODE_FALLBACK, defValue);
+                String propVal = resolveHolder(strVal, holder, SYS_PROPS_MODE_FALLBACK, defValue, group, dataId, lastProperties);
                 if (propVal != null) {
                     // Recursive invocation, parsing Holders contained in the
                     // previously resolved Holder value.
-                    propVal = substitute(propVal, visitedHolders, ignoreBadHolders);
+                    propVal = substitute(propVal, visitedHolders, ignoreBadHolders, group, dataId, lastProperties);
                     buf.replace(startIndex, endIndex + DEF_HOLDER_SUFFIX_LEN, propVal);
 
                     startIndex = buf.indexOf(DEF_HOLDER_PREFIX, startIndex + propVal.length());
@@ -168,14 +168,14 @@ public abstract class DiamondSubstituter {
      * @return the resolved value, of null if none
      * @see System#getProperty
      */
-    private static String resolveHolder(String holder, int sysPropsMode,
-                                        String defaultValue) {
+    private static String resolveHolder(String strVal, String holder, int sysPropsMode,
+                                        String defaultValue, String group, String dataId, Properties lastProperties) {
         String propVal = null;
         if (sysPropsMode == SYS_PROPS_MODE_OVERRIDE) {
             propVal = resolveSystemProperty(holder);
         }
         if (propVal == null) {
-            propVal = resolveHolder(holder, defaultValue);
+            propVal = resolveHolder(strVal, holder, defaultValue, group, dataId, lastProperties);
         }
         if (propVal == null && sysPropsMode == SYS_PROPS_MODE_FALLBACK) {
             propVal = resolveSystemProperty(holder);
@@ -195,27 +195,54 @@ public abstract class DiamondSubstituter {
      * @param holder       the Holder to resolve
      * @return the resolved value, of <code>null</code> if none
      */
-    protected static String resolveHolder(String holder, String defaultValue) {
-        int seperate = holder.indexOf('^');
-        String group = Constants.DEFAULT_GROUP;
-        String dataId = holder;
-        if (seperate > 0 && seperate < holder.length() - 1) {
-            group = holder.substring(0, seperate);
-            dataId = holder.substring(seperate + 1);
+    protected static String resolveHolder(String strVal, String holder, String defaultValue, String curGroup, String curDataId, Properties lastProperties) {
+        int separated = holder.indexOf('^');
+        if (separated < 0 && holder.startsWith("this.")) {
+            String referKey = holder.substring("this.".length());
+            return recursiveSubstitute(strVal, defaultValue, curGroup, curDataId, lastProperties, referKey);
         }
 
+        String group = Constants.DEFAULT_GROUP;
+        String dataId = holder;
+        if (separated > 0 && separated < holder.length() - 1) {
+            group = holder.substring(0, separated);
+            dataId = holder.substring(separated + 1);
+        }
+
+        String value;
         int propKeyPos = dataId.indexOf('^');
         if (propKeyPos > 0) {
             String subDataId = dataId.substring(0, propKeyPos);
             String propKey = dataId.substring(propKeyPos + 1);
-            String value = new Miner().getMiner(group, subDataId).getString(propKey);
-            if (value != null) return value;
+            if (isSameGroupAndDataId(curGroup, curDataId, group, subDataId)) {
+                value = recursiveSubstitute(strVal, defaultValue, curGroup, curDataId, lastProperties, propKey);
+            } else {
+                value = new Miner().getMiner(group, subDataId).getString(propKey);
+            }
         } else {
-            String value = new Miner().getStone(group, dataId);
-            if (value != null) return value;
+            if (isSameGroupAndDataId(curGroup, curDataId, group, dataId)) {
+                // reference to itself
+                throw new RuntimeException(curGroup + "^" + curDataId + "can not refer itself");
+            }
+
+            value = new Miner().getStone(group, dataId);
         }
 
-        return defaultValue;
+        return value != null ? value : defaultValue;
+    }
+
+    private static String recursiveSubstitute(String strVal, String defaultValue,
+                                              String curGroup, String curDataId,
+                                              Properties lastProperties, String referKey) {
+        Properties properties = lastProperties != null ? lastProperties : DiamondUtils.parseStoneToProperties(strVal);
+        String property = properties.getProperty(referKey, defaultValue);
+        String substitute = substitute(property, true, curGroup, curDataId, properties);
+        properties.setProperty(referKey, substitute);
+        return substitute;
+    }
+
+    private static boolean isSameGroupAndDataId(String curGroup, String curDataId, String group, String subDataId) {
+        return StringUtils.equals(group, curGroup) && StringUtils.equals(subDataId, curDataId);
     }
 
     /**

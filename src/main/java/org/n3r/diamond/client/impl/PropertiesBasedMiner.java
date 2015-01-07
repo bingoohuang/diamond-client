@@ -17,7 +17,7 @@ public class PropertiesBasedMiner extends AbstractMiner {
         String key = StringUtils.isBlank(group) ? dataId : (group + "." + dataId);
         String property = properties.getProperty(key);
 
-        return DiamondSubstituter.substitute(property, true);
+        return DiamondSubstituter.substitute(property, true, group, dataId, null);
     }
 
     @Override
