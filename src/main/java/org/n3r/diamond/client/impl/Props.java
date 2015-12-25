@@ -28,7 +28,7 @@ public class Props {
     }
 
 
-    static enum Silent {ON, OFF}
+    enum Silent {ON, OFF}
 
     public static InputStream tryResource(String pathname, String appHome, Silent silent) {
         InputStream is = currentDirResource(new File(pathname));

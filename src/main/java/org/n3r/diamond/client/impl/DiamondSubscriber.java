@@ -66,21 +66,25 @@ public class DiamondSubscriber implements Closeable {
 
         localDiamondMiner.start(managerConfig);
 
-        DiamondHttpClient diamondHttpClient = new DiamondHttpClient(managerConfig);
-
-        serverAddressesMiner = new ServerAddressesMiner(managerConfig, scheduler, diamondHttpClient);
-        serverAddressesMiner.start();
-
         snapshotMiner = new SnapshotMiner(managerConfig);
         diamondCache = new DiamondCache(snapshotMiner);
 
-        diamondRemoteChecker = new DiamondRemoteChecker(this, managerConfig, diamondCache, diamondHttpClient);
+        if (!ClientProperties.isPureLocalMode()) {
+            DiamondHttpClient diamondHttpClient = new DiamondHttpClient(managerConfig);
+
+            serverAddressesMiner = new ServerAddressesMiner(
+                    managerConfig, scheduler, diamondHttpClient);
+            serverAddressesMiner.start();
+
+            diamondRemoteChecker = new DiamondRemoteChecker(this,
+                    managerConfig, diamondCache, diamondHttpClient);
+
+            log.info("diamond servers {}", managerConfig.getDiamondServers());
+
+            rotateCheckDiamonds();
+        }
 
         running = true;
-
-        log.info("diamond servers {}", managerConfig.getDiamondServers());
-
-        rotateCheckDiamonds();
 
         addShutdownHook();
     }
@@ -135,7 +139,7 @@ public class DiamondSubscriber implements Closeable {
 
         scheduler.shutdownNow();
 
-        metaCache.invalidateAll();
+//        metaCache.invalidateAll();
         diamondRemoteChecker.shutdown();
         diamondCache.close();
 
@@ -174,7 +178,8 @@ public class DiamondSubscriber implements Closeable {
     }
 
     public String getDiamond(DiamondAxis diamondAxis, long timeout) {
-        if (MockDiamondServer.isTestMode()) return MockDiamondServer.getDiamond(diamondAxis);
+        if (MockDiamondServer.isTestMode())
+            return MockDiamondServer.getDiamond(diamondAxis);
 
         try {
             String result = retrieveDiamondLocalAndRemote(diamondAxis, timeout);
@@ -193,7 +198,8 @@ public class DiamondSubscriber implements Closeable {
         try {
             DiamondMeta diamondMeta = getCachedMeta(diamondAxis);
             String diamondContent = snapshotMiner.getSnapshot(diamondAxis);
-            if (diamondContent != null && diamondMeta != null) diamondMeta.incSuccCounterAndGet();
+            if (diamondContent != null && diamondMeta != null)
+                diamondMeta.incSuccCounterAndGet();
 
             return diamondContent;
         } catch (Exception e) {
@@ -214,7 +220,8 @@ public class DiamondSubscriber implements Closeable {
             if (diamondMeta.getFetchCount() > 0) continue;
 
             String diamond = getSnapshot(diamondMeta.getDiamondAxis());
-            if (diamond != null) diamondRemoteChecker.onDiamondChanged(diamondMeta, diamond);
+            if (diamond != null)
+                diamondRemoteChecker.onDiamondChanged(diamondMeta, diamond);
         }
     }
 

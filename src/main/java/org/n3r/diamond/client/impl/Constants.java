@@ -3,6 +3,7 @@ package org.n3r.diamond.client.impl;
 public interface Constants {
     String SERVER_ADDRESS = "DiamondServer.address";
     String NAME_SERVER_ADDRESS = "NameServer.address";
+    String PureLocalMode = "PureLocalMode";
 
     String DATA_DIR = "config-data"; // local disaster recovery dir
     String SNAPSHOT_DIR = "snapshot"; // snapshot of last successfully gotten config
@@ -60,4 +61,5 @@ public interface Constants {
     String DIAMOND_CACHE_EXT = ".cache.";
 
     String DIAMOND_EXTENDERS = "diamond.extenders";
+
 }

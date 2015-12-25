@@ -18,10 +18,17 @@ public class ClientProperties {
     public static HostAndPort readNameServerAddresses() {
         String nameServerAddress = properties.getProperty(Constants.NAME_SERVER_ADDRESS);
         if (StringUtils.isNotEmpty(nameServerAddress)) {
-            return HostAndPort.fromString(nameServerAddress).withDefaultPort(Constants.DEFAULT_NAME_SERVER_PORT);
+            return HostAndPort.fromString(nameServerAddress)
+                    .withDefaultPort(Constants.DEFAULT_NAME_SERVER_PORT);
         }
 
-        return HostAndPort.fromParts(Constants.DEFAULT_DIAMOND_SERVER_NAME, Constants.DEFAULT_NAME_SERVER_PORT);
+        return HostAndPort.fromParts(Constants.DEFAULT_DIAMOND_SERVER_NAME,
+                Constants.DEFAULT_NAME_SERVER_PORT);
+    }
+
+    public static boolean isPureLocalMode() {
+        String pureLocalMode = properties.getProperty(Constants.PureLocalMode);
+        return pureLocalMode != null && (pureLocalMode.equals("yes") || pureLocalMode.equals("on"));
     }
 
     public static Set<String> readDiamondServersAddress() {
@@ -53,7 +60,7 @@ public class ClientProperties {
         return properties.getProperty("BasicAuth");
     }
 
-    public static enum NameServerMode {
+    public enum NameServerMode {
         Off, ByEtcHosts, ByAddressProperty
     }
 }
