@@ -43,12 +43,18 @@ public abstract class DiamondSubstituter {
     private static final int DEF_HOLDER_SUFFIX_LEN = DEF_HOLDER_SUFFIX.length();
 
 
-
     /**
      * Parse the given String value recursively, to be able to resolve
      * nested Holders (when resolved property values in turn contain
      * Holders again).
      *
+     * @param strVal           the String value to parse
+     * @param ignoreBadHolders during the current resolution attempt (used to detect circular references
+     *                         between Holders). Only non-null if we're parsing a nested Holder.
+     * @param group            diamond group id
+     * @param dataId           diamond data id
+     * @param lastProperties   last properties
+     * @return value after substituted
      */
     public static String substitute(String strVal, boolean ignoreBadHolders, String group, String dataId, Properties lastProperties) {
         if (strVal == null) return null;
@@ -66,6 +72,10 @@ public abstract class DiamondSubstituter {
      * @param visitedHolders   the Holders that have already been visited
      * @param ignoreBadHolders during the current resolution attempt (used to detect circular references
      *                         between Holders). Only non-null if we're parsing a nested Holder.
+     * @param group            diamond group id
+     * @param dataId           diamond data id
+     * @param lastProperties   last properties
+     * @return value after substituted
      */
     public static String substitute(String strVal, Set<String> visitedHolders,
                                     boolean ignoreBadHolders, String group, String dataId, Properties lastProperties) {
@@ -162,9 +172,14 @@ public abstract class DiamondSubstituter {
      * <p>Subclasses can override this for custom resolution strategies,
      * including customized points for the system properties check.
      *
-     * @param holder       the Holder to resolve
-     * @param sysPropsMode the system properties mode,
-     *                     according to the constants in this class
+     * @param strVal         string value
+     * @param holder         the Holder to resolve
+     * @param sysPropsMode   the system properties mode,
+     *                       according to the constants in this class
+     * @param defaultValue   default value
+     * @param group          diamond group id
+     * @param dataId         diamond data id
+     * @param lastProperties last properties
      * @return the resolved value, of null if none
      * @see System#getProperty
      */
@@ -192,8 +207,12 @@ public abstract class DiamondSubstituter {
      * <p>Note that system properties will still be checked before respectively
      * after this method is invoked, according to the system properties mode.
      *
-     * @param holder       the Holder to resolve
-     * @return the resolved value, of <code>null</code> if none
+     * @param strVal         string value
+     * @param holder         the Holder to resolve
+     * @param defaultValue   default value
+     * @param curGroup       diamond group id
+     * @param curDataId      diamond data id
+     * @param lastProperties last properties     * @return the resolved value, of <code>null</code> if none
      */
     protected static String resolveHolder(String strVal, String holder, String defaultValue, String curGroup, String curDataId, Properties lastProperties) {
         int separated = holder.indexOf('^');

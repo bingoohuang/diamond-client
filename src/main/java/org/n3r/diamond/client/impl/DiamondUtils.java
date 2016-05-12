@@ -1,5 +1,6 @@
 package org.n3r.diamond.client.impl;
 
+import com.google.common.base.Splitter;
 import com.google.common.collect.Lists;
 import org.apache.commons.codec.digest.DigestUtils;
 import org.apache.commons.lang3.StringEscapeUtils;
@@ -165,4 +166,26 @@ public class DiamondUtils {
 
         return newProperties;
     }
+
+
+    public static List<String> splitLinesWoComments(String text, String commentStart) {
+        Splitter splitter = Splitter.on('\n').trimResults().omitEmptyStrings();
+        List<String> lines = Lists.newArrayList();
+
+        for (String line : splitter.split(text)) {
+            int commentIndex = line.indexOf(commentStart);
+            if (commentIndex < 0) {
+                lines.add(line);
+                continue;
+            }
+
+            line = line.substring(0, commentIndex);
+            line = StringUtils.trim(line);
+            if (StringUtils.isNotEmpty(line)) lines.add(line);
+        }
+
+        return lines;
+    }
 }
+
+

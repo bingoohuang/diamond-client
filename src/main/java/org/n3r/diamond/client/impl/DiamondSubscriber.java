@@ -69,7 +69,7 @@ public class DiamondSubscriber implements Closeable {
         snapshotMiner = new SnapshotMiner(managerConfig);
         diamondCache = new DiamondCache(snapshotMiner);
 
-        if (!ClientProperties.isPureLocalMode()) {
+        if (!ClientProperties.isPureLocalMode() || MockDiamondServer.isTestMode()) {
             DiamondHttpClient diamondHttpClient = new DiamondHttpClient(managerConfig);
 
             serverAddressesMiner = new ServerAddressesMiner(
