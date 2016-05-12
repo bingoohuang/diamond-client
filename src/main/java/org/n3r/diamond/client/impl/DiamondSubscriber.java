@@ -51,11 +51,13 @@ public class DiamondSubscriber implements Closeable {
     }
 
     public void addDiamondListener(DiamondAxis diamondAxis, DiamondListener diamondListener) {
-        diamondRemoteChecker.addDiamondListener(diamondAxis, diamondListener);
+        if (diamondRemoteChecker != null)
+            diamondRemoteChecker.addDiamondListener(diamondAxis, diamondListener);
     }
 
     public void removeDiamondListener(DiamondAxis diamondAxis, DiamondListener diamondListener) {
-        diamondRemoteChecker.removeDiamondListener(diamondAxis, diamondListener);
+        if (diamondRemoteChecker != null)
+            diamondRemoteChecker.removeDiamondListener(diamondAxis, diamondListener);
     }
 
     public synchronized void start() {
@@ -140,7 +142,8 @@ public class DiamondSubscriber implements Closeable {
         scheduler.shutdownNow();
 
 //        metaCache.invalidateAll();
-        diamondRemoteChecker.shutdown();
+        if (diamondRemoteChecker != null) diamondRemoteChecker.shutdown();
+
         diamondCache.close();
 
         log.warn("end to close DiamondSubscriber");
