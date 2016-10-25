@@ -137,7 +137,7 @@ public class DiamondSubscriber implements Closeable {
         log.warn("start to close DiamondSubscriber");
 
         localDiamondMiner.stop();
-        serverAddressesMiner.stop();
+        if (serverAddressesMiner != null) serverAddressesMiner.stop();
 
         scheduler.shutdownNow();
 
