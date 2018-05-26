@@ -2,6 +2,7 @@ package org.n3r.diamond.client.impl;
 
 import com.google.common.base.Splitter;
 import com.google.common.collect.Lists;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.codec.digest.DigestUtils;
 import org.apache.commons.lang3.StringEscapeUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -11,8 +12,6 @@ import org.n3r.diamond.client.cache.ParamsAppliable;
 import org.n3r.diamond.client.cache.Spec;
 import org.n3r.diamond.client.cache.SpecParser;
 import org.n3r.diamond.client.security.Pbe;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.io.StringReader;
@@ -26,10 +25,8 @@ import java.util.regex.Pattern;
 
 import static org.n3r.diamond.client.impl.Constants.LINE_SEPARATOR;
 
-@SuppressWarnings("unchecked")
+@Slf4j
 public class DiamondUtils {
-    private static Logger log = LoggerFactory.getLogger(DiamondUtils.class);
-
     public static boolean toBool(String str) {
         return "true".equalsIgnoreCase(str) || "yes".equalsIgnoreCase(str)
                 || "on".equalsIgnoreCase(str) || "y".equalsIgnoreCase(str);

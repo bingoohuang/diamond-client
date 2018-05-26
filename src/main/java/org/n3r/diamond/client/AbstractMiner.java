@@ -3,12 +3,11 @@ package org.n3r.diamond.client;
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
-import com.google.common.base.Objects;
+import com.google.common.base.MoreObjects;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.n3r.diamond.client.impl.DiamondUtils;
 import org.n3r.diamond.client.impl.PropertiesBasedMiner;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.util.List;
 import java.util.Properties;
@@ -17,9 +16,8 @@ import java.util.concurrent.TimeUnit;
 import static org.n3r.diamond.client.impl.DiamondUtils.parseObject;
 import static org.n3r.diamond.client.impl.DiamondUtils.parseObjects;
 
+@Slf4j
 public abstract class AbstractMiner implements Minerable {
-    Logger log = LoggerFactory.getLogger(AbstractMiner.class);
-
     public abstract String getDefaultGroupName();
 
     @Override
@@ -211,7 +209,7 @@ public abstract class AbstractMiner implements Minerable {
 
     @Override
     public String getStone(String group, String dataId, String defaultValue) {
-        return Objects.firstNonNull(getStone(group, dataId), defaultValue);
+        return MoreObjects.firstNonNull(getStone(group, dataId), defaultValue);
     }
 
     @Override

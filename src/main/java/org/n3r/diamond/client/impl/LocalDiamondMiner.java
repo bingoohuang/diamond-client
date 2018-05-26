@@ -1,13 +1,12 @@
 package org.n3r.diamond.client.impl;
 
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.io.monitor.FileAlterationListenerAdaptor;
 import org.apache.commons.io.monitor.FileAlterationMonitor;
 import org.apache.commons.io.monitor.FileAlterationObserver;
 import org.n3r.diamond.client.DiamondAxis;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.io.File;
 import java.io.IOException;
@@ -17,10 +16,9 @@ import java.util.Map;
 import static java.io.File.separator;
 import static org.n3r.diamond.client.impl.Constants.*;
 
+@Slf4j
 class LocalDiamondMiner {
-    private Logger log = LoggerFactory.getLogger(LocalDiamondMiner.class);
-
-    private Map<String/* filePath */, Long/* timestamp */> existFilesTimestamp = new HashMap<String, Long>();
+    private Map<String/* filePath */, Long/* timestamp */> existFilesTimestamp = new HashMap<>();
 
     private volatile boolean running;
     private String rootPath = null;

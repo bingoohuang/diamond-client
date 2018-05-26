@@ -5,23 +5,22 @@ import com.google.common.base.Throwables;
 import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
 import com.google.common.util.concurrent.Futures;
+import lombok.extern.slf4j.Slf4j;
+import lombok.val;
 import org.n3r.diamond.client.DiamondAxis;
 import org.n3r.diamond.client.impl.DiamondSubstituter;
 import org.n3r.diamond.client.impl.DiamondUtils;
 import org.n3r.diamond.client.impl.SnapshotMiner;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.util.Arrays;
 import java.util.concurrent.*;
 
 import static org.apache.commons.lang3.StringUtils.isEmpty;
 
-@SuppressWarnings("unchecked")
+@Slf4j
 public class DiamondCache {
     private final SnapshotMiner snapshotMiner;
     private ExecutorService executorService = Executors.newSingleThreadExecutor();
-    private Logger log = LoggerFactory.getLogger(DiamondCache.class);
     private Cache<DiamondAxis, Future<Object>> cache = CacheBuilder.newBuilder().build();
 
     public DiamondCache(SnapshotMiner snapshotMiner) {
@@ -33,7 +32,7 @@ public class DiamondCache {
                            final Object... dynamics) {
         final int dynamicsHasCode = Arrays.deepHashCode(dynamics);
 
-        Callable<Future<Object>> callable = createFirstFutureCallable(diamondAxis, diamondContent, dynamics);
+        val callable = createFirstFutureCallable(diamondAxis, diamondContent, dynamics);
 
         Future<Object> cachedObject;
         try {
@@ -46,9 +45,9 @@ public class DiamondCache {
         Object object = futureGet(diamondAxis, diamondContent, cachedObject, dynamicsHasCode);
         if (!(object instanceof Cache)) return object;
 
-        Cache<Integer, Future<Object>> subCache = (Cache<Integer, Future<Object>>) object;
+        val subCache = (Cache<Integer, Future<Object>>) object;
 
-        Callable<Future<Object>> dynamicCallable = getSecondFutureCallable(diamondAxis, diamondContent, dynamics);
+        val dynamicCallable = getSecondFutureCallable(diamondAxis, diamondContent, dynamics);
         Future<Object> subCachedObject;
         try {
             subCachedObject = subCache.get(dynamicsHasCode, dynamicCallable);
@@ -63,45 +62,29 @@ public class DiamondCache {
     private Callable<Future<Object>> getSecondFutureCallable(final DiamondAxis diamondAxis,
                                                              final String diamondContent,
                                                              final Object[] dynamics) {
-        return new Callable<Future<Object>>() {
-            @Override
-            public Future<Object> call() throws Exception {
-                return executorService.submit(new Callable<Object>() {
-                    @Override
-                    public Object call() throws Exception {
-                        Callable<Object> updater = createUpdater(diamondAxis, diamondContent, dynamics);
-                        if (updater == null) return null;
+        return () -> executorService.submit(() -> {
+            Callable<Object> updater = createUpdater(diamondAxis, diamondContent, dynamics);
+            if (updater == null) return null;
 
-                        Optional<Object> objectOptional = updateCache(updater, diamondAxis, diamondContent, dynamics);
-                        return objectOptional != null ? objectOptional.orNull() : null;
-                    }
-                });
-            }
-        };
+            Optional<Object> objectOptional = updateCache(updater, diamondAxis, diamondContent, dynamics);
+            return objectOptional != null ? objectOptional.orNull() : null;
+        });
     }
 
     private Callable<Future<Object>> createFirstFutureCallable(final DiamondAxis diamondAxis,
                                                                final String diamondContent,
                                                                final Object[] dynamics) {
-        return new Callable<Future<Object>>() {
-            @Override
-            public Future<Object> call() throws Exception {
-                return executorService.submit(new Callable<Object>() {
-                    @Override
-                    public Object call() throws Exception {
-                        Callable<Object> updater = createUpdater(diamondAxis, diamondContent, dynamics);
-                        if (updater == null) return null;
+        return () -> executorService.submit(() -> {
+            Callable<Object> updater = createUpdater(diamondAxis, diamondContent, dynamics);
+            if (updater == null) return null;
 
-                        if (isDynamicApplicable(updater)) {
-                            return CacheBuilder.newBuilder().build();
-                        } else {
-                            Optional<Object> objectOptional = updateCache(updater, diamondAxis, diamondContent, dynamics);
-                            return objectOptional != null ? objectOptional.orNull() : null;
-                        }
-                    }
-                });
+            if (isDynamicApplicable(updater)) {
+                return CacheBuilder.newBuilder().build();
+            } else {
+                Optional<Object> objectOptional = updateCache(updater, diamondAxis, diamondContent, dynamics);
+                return objectOptional != null ? objectOptional.orNull() : null;
             }
-        };
+        });
     }
 
     private Object futureGet(DiamondAxis diamondAxis,
@@ -173,20 +156,17 @@ public class DiamondCache {
         Future<Object> cacheOptional = cache.getIfPresent(diamondAxis);
         if (cacheOptional == null) return cacheOptional;
 
-        Callable<Object> task = new Callable<Object>() {
-            @Override
-            public Object call() throws Exception {
-                Callable<Object> updater = createUpdater(diamondAxis, diamondContent);
-                if (updater == null) return null;
+        Callable<Object> task = () -> {
+            Callable<Object> updater = createUpdater(diamondAxis, diamondContent);
+            if (updater == null) return null;
 
-                if (isDynamicApplicable(updater)) {
-                    removeCacheSnapshot(diamondAxis);
-                    return null;
-                } else {
-                    final Optional<Object> updated = updateCache(updater, diamondAxis, diamondContent);
-                    if (updated != null) cache.put(diamondAxis, Futures.immediateFuture(updated.orNull()));
-                    return updated;
-                }
+            if (isDynamicApplicable(updater)) {
+                removeCacheSnapshot(diamondAxis);
+                return null;
+            } else {
+                final Optional<Object> updated = updateCache(updater, diamondAxis, diamondContent);
+                if (updated != null) cache.put(diamondAxis, Futures.immediateFuture(updated.orNull()));
+                return updated;
             }
         };
 

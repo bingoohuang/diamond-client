@@ -10,7 +10,7 @@ public class DemoDynamicUpdater implements Callable<String>, DynamicsAppliable {
     private String format = "yyyy-MM-dd HH:mm:ss.SSS";
 
     @Override
-    public String call() throws Exception {
+    public String call() {
         Utils.sleepMillis(3500);
         return new SimpleDateFormat(format).format(new Date());
     }

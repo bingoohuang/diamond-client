@@ -82,10 +82,7 @@ class DiamondMeta {
 
         DiamondMeta diamondMeta = (DiamondMeta) o;
 
-        if (diamondAxis != null ? !diamondAxis.equals(diamondMeta.diamondAxis) : diamondMeta.diamondAxis != null)
-            return false;
-
-        return true;
+        return diamondAxis != null ? diamondAxis.equals(diamondMeta.diamondAxis) : diamondMeta.diamondAxis == null;
     }
 
     @Override

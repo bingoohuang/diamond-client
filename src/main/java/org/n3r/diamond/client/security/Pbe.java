@@ -17,7 +17,7 @@ public class Pbe {
 
     private static final String ALGORITHM = "PBEWITHMD5andDES";
 
-    public static void main(String[] args) throws Exception {
+    public static void main(String[] args) {
         String originalPassword = "secret";
         System.out.println("Original password: " + originalPassword);
         String encryptedPassword = encrypt(originalPassword, "mypass");

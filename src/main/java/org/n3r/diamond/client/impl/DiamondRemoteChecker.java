@@ -4,13 +4,12 @@ import com.google.common.base.Optional;
 import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
 import com.google.common.util.concurrent.MoreExecutors;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.n3r.diamond.client.DiamondAxis;
 import org.n3r.diamond.client.DiamondListener;
 import org.n3r.diamond.client.DiamondStone;
 import org.n3r.diamond.client.cache.DiamondCache;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.util.Set;
 import java.util.concurrent.Callable;
@@ -18,9 +17,9 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 
+@Slf4j
 class DiamondRemoteChecker {
     private final DiamondCache diamondCache;
-    private Logger log = LoggerFactory.getLogger(DiamondRemoteChecker.class);
 
     private Cache<DiamondAxis, Optional<String>> contentCache = CacheBuilder.newBuilder()
             .expireAfterAccess(15, TimeUnit.MINUTES)
@@ -106,21 +105,21 @@ class DiamondRemoteChecker {
         diamondStone.setDiamondAxis(diamondMeta.getDiamondAxis());
         diamondMeta.incSuccCounterAndGet();
 
-        Callable<Object> command = new Callable<Object>() {
-            public Object call() {
-                try {
-                    diamondSubscriber.saveSnapshot(diamondStone.getDiamondAxis(), content);
-                    diamondAllListener.accept(diamondStone);
-                    return diamondCache.updateDiamondCacheOnChange(diamondStone.getDiamondAxis(), content);
-                } catch (Throwable t) {
-                    log.error("onDiamondChanged {} with error {}", diamondMeta.getDiamondAxis(), t.getMessage());
-                }
-                return null;
+        Callable<Object> command = () -> {
+            try {
+                diamondSubscriber.saveSnapshot(diamondStone.getDiamondAxis(), content);
+                diamondAllListener.accept(diamondStone);
+                return diamondCache.updateDiamondCacheOnChange(diamondStone.getDiamondAxis(), content);
+            } catch (Throwable t) {
+                log.error("onDiamondChanged {} with error {}", diamondMeta.getDiamondAxis(), t.getMessage());
             }
+            return null;
         };
 
         ExecutorService executor = diamondAllListener.getExecutor();
-        if (executor == null) executor = MoreExecutors.sameThreadExecutor();
+        if (executor == null) {
+            executor = MoreExecutors.newDirectExecutorService();
+        }
         return executor.submit(command);
     }
 
@@ -174,7 +173,7 @@ class DiamondRemoteChecker {
                         diamondMeta.setMd5(Constants.NULL);
                         diamondSubscriber.removeSnapshot(diamondAxis);
                         diamondCache.removeCacheSnapshot(diamondAxis);
-                        contentCache.put(diamondAxis, Optional.<String>absent());
+                        contentCache.put(diamondAxis, Optional.absent());
                         return null;
                     default: {
                         if (httpStatus != lastHttpStatus) {

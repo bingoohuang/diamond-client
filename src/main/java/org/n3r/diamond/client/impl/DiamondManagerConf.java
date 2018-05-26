@@ -2,8 +2,7 @@ package org.n3r.diamond.client.impl;
 
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import lombok.extern.slf4j.Slf4j;
 
 import java.io.File;
 import java.util.List;
@@ -13,9 +12,8 @@ import java.util.concurrent.atomic.AtomicInteger;
 
 import static org.n3r.diamond.client.impl.Constants.*;
 
+@Slf4j
 public class DiamondManagerConf {
-    private Logger log = LoggerFactory.getLogger(DiamondManagerConf.class);
-
     private volatile int pollingInterval = POLLING_INTERVAL; // interval for periodically check
     private volatile int onceTimeout = ONCE_TIMEOUT; // Timeout for one try config from diamond-server
     private volatile int receiveWaitTime = RECV_WAIT_TIMEOUT; // total timeout for one config with multi tries

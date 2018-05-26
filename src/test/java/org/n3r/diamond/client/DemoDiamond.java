@@ -3,12 +3,7 @@ package org.n3r.diamond.client;
 public class DemoDiamond {
     public static void main(String[] args) {
         DiamondManager diamondManager = new DiamondManager("foo");
-        diamondManager.addDiamondListener(new DiamondListenerAdapter() {
-            @Override
-            public void accept(DiamondStone diamondStone) {
-                System.out.println("DiamondListener:" + diamondStone.getContent());
-            }
-        });
+        diamondManager.addDiamondListener(diamondStone -> System.out.println("DiamondListener:" + diamondStone.getContent()));
 
         long start = System.currentTimeMillis();
         String diamond = diamondManager.getDiamond();

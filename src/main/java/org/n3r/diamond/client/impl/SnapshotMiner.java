@@ -1,30 +1,32 @@
 package org.n3r.diamond.client.impl;
 
 import com.alibaba.fastjson.JSON;
+import com.alibaba.fastjson.parser.ParserConfig;
 import com.alibaba.fastjson.serializer.SerializerFeature;
 import com.google.common.base.Optional;
 import com.google.common.primitives.UnsignedLongs;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.FileUtils;
 import org.n3r.diamond.client.DiamondAxis;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.io.File;
-import java.io.FilenameFilter;
 import java.io.IOException;
 
 import static java.io.File.separator;
 import static org.apache.commons.lang3.StringUtils.defaultIfEmpty;
 import static org.n3r.diamond.client.impl.Constants.*;
 
+@Slf4j
 public class SnapshotMiner {
-    private Logger log = LoggerFactory.getLogger(SnapshotMiner.class);
     private final String dir;
+    private final ParserConfig parserConfig = new ParserConfig();
 
     public SnapshotMiner(DiamondManagerConf managerConfig) {
         dir = managerConfig.getFilePath() + separator + SNAPSHOT_DIR;
         File file = new File(dir);
         file.mkdirs();
+
+        parserConfig.setAutoTypeSupport(true);
     }
 
     public String getSnapshot(DiamondAxis diamondAxis) throws IOException {
@@ -73,12 +75,7 @@ public class SnapshotMiner {
         if (!dir.exists()) return;
 
         final String prefix = diamondAxis.getDataId() + extension;
-        File[] files = dir.listFiles(new FilenameFilter() {
-            @Override
-            public boolean accept(File dir, String name) {
-                return name.startsWith(prefix);
-            }
-        });
+        File[] files = dir.listFiles((dir1, name) -> name.startsWith(prefix));
 
         for (File file : files)
             file.delete();
@@ -113,7 +110,7 @@ public class SnapshotMiner {
             String fileContent = getFileContent(diamondAxis, getDynamicCacheExtension(dynamicsHasCode));
             if (fileContent == null) return Optional.absent();
 
-            return Optional.fromNullable(JSON.parse(fileContent));
+            return Optional.fromNullable(JSON.parse(fileContent, parserConfig));
         } catch (IOException e) {
             log.error("read cache snapshot {} failed {}", e.getMessage());
         }

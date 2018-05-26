@@ -50,9 +50,7 @@ public class Rsa {
             byte[] decodedPubKey = DatatypeConverter.parseBase64Binary(pubkey);
             EncodedKeySpec publicKeySpec = new X509EncodedKeySpec(decodedPubKey);
             return keyFactory.generatePublic(publicKeySpec);
-        } catch (NoSuchAlgorithmException e) {
-            throw new RuntimeException(e);
-        } catch (InvalidKeySpecException e) {
+        } catch (NoSuchAlgorithmException | InvalidKeySpecException e) {
             throw new RuntimeException(e);
         }
     }
@@ -63,9 +61,7 @@ public class Rsa {
             byte[] decodedPriKey = DatatypeConverter.parseBase64Binary(prikey);
             EncodedKeySpec privateKeySpec = new PKCS8EncodedKeySpec(decodedPriKey);
             return keyFactory.generatePrivate(privateKeySpec);
-        } catch (NoSuchAlgorithmException e) {
-            throw new RuntimeException(e);
-        } catch (InvalidKeySpecException e) {
+        } catch (NoSuchAlgorithmException | InvalidKeySpecException e) {
             throw new RuntimeException(e);
         }
     }

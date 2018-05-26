@@ -1,17 +1,15 @@
 package org.n3r.diamond.client.impl;
 
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.IOUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.io.*;
 import java.util.Properties;
 
 import static java.io.File.separator;
 
+@Slf4j
 public class Props {
-    static Logger log = LoggerFactory.getLogger(Props.class);
-
     public static Properties tryProperties(String pathname, String appHome) {
         Properties properties = new Properties();
         InputStream is = null;

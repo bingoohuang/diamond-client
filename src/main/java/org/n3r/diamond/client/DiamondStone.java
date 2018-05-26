@@ -37,9 +37,7 @@ public class DiamondStone {
 
         DiamondStone diamondStone = (DiamondStone) o;
 
-        if (diamondAxis != null ? !diamondAxis.equals(diamondStone.diamondAxis) : diamondStone.diamondAxis != null) return false;
-
-        return true;
+        return diamondAxis != null ? diamondAxis.equals(diamondStone.diamondAxis) : diamondStone.diamondAxis == null;
     }
 
     @Override

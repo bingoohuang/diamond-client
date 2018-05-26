@@ -3,7 +3,9 @@ package org.n3r.diamond.client;
 import java.util.concurrent.ExecutorService;
 
 public interface DiamondListener {
-    ExecutorService getExecutor();
+    default ExecutorService getExecutor() {
+        return null;
+    }
 
     void accept(DiamondStone diamondStone);
 }

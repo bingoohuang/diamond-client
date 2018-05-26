@@ -3,6 +3,7 @@ package org.n3r.diamond.client.impl;
 import com.google.common.base.Throwables;
 import com.google.common.collect.Sets;
 import com.google.common.net.HostAndPort;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.httpclient.*;
 import org.apache.commons.httpclient.methods.GetMethod;
 import org.apache.commons.httpclient.params.HttpConnectionManagerParams;
@@ -11,8 +12,6 @@ import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.io.File;
 import java.util.ArrayList;
@@ -24,10 +23,8 @@ import java.util.concurrent.TimeUnit;
 
 import static org.n3r.diamond.client.impl.ClientProperties.*;
 
+@Slf4j
 class ServerAddressesMiner {
-
-    private Logger log = LoggerFactory.getLogger(ServerAddressesMiner.class);
-
     private volatile boolean running;
     private volatile DiamondManagerConf diamondManagerConf;
 
@@ -156,7 +153,7 @@ class ServerAddressesMiner {
     private boolean acquireServerAddresses() {
         HostAndPort hostAndPort = readNameServerAddresses();
 
-        httpClient.getHostConfiguration().setHost(hostAndPort.getHostText(), hostAndPort.getPort());
+        httpClient.getHostConfiguration().setHost(hostAndPort.getHost(), hostAndPort.getPort());
         HttpMethod httpMethod = new GetMethod(Constants.DIAMOND_HTTP_URI);
         HttpMethodParams params = new HttpMethodParams();
         params.setSoTimeout(diamondManagerConf.getOnceTimeout());

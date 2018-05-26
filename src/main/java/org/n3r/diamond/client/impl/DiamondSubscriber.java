@@ -3,19 +3,19 @@ package org.n3r.diamond.client.impl;
 import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.CacheLoader;
 import com.google.common.cache.LoadingCache;
+import lombok.extern.slf4j.Slf4j;
+import lombok.val;
 import org.apache.commons.lang3.StringUtils;
 import org.n3r.diamond.client.DiamondAxis;
 import org.n3r.diamond.client.DiamondListener;
 import org.n3r.diamond.client.cache.DiamondCache;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.io.Closeable;
-import java.util.Map;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 
+@Slf4j
 public class DiamondSubscriber implements Closeable {
     private static DiamondSubscriber instance = new DiamondSubscriber();
 
@@ -23,17 +23,14 @@ public class DiamondSubscriber implements Closeable {
         return instance;
     }
 
-    private Logger log = LoggerFactory.getLogger(DiamondSubscriber.class);
-
     private final LoadingCache<DiamondAxis, DiamondMeta> metaCache
-            = CacheBuilder.newBuilder()
-            .build(new CacheLoader<DiamondAxis, DiamondMeta>() {
-                @Override
-                public DiamondMeta load(DiamondAxis key) throws Exception {
-                    start();
-                    return new DiamondMeta(key);
-                }
-            });
+            = CacheBuilder.newBuilder().build(new CacheLoader<DiamondAxis, DiamondMeta>() {
+        @Override
+        public DiamondMeta load(DiamondAxis key) {
+            start();
+            return new DiamondMeta(key);
+        }
+    });
 
     private volatile DiamondManagerConf managerConfig = new DiamondManagerConf();
 
@@ -74,8 +71,7 @@ public class DiamondSubscriber implements Closeable {
         if (!ClientProperties.isPureLocalMode() || MockDiamondServer.isTestMode()) {
             DiamondHttpClient diamondHttpClient = new DiamondHttpClient(managerConfig);
 
-            serverAddressesMiner = new ServerAddressesMiner(
-                    managerConfig, scheduler, diamondHttpClient);
+            serverAddressesMiner = new ServerAddressesMiner(managerConfig, scheduler, diamondHttpClient);
             serverAddressesMiner.start();
 
             diamondRemoteChecker = new DiamondRemoteChecker(this,
@@ -93,29 +89,13 @@ public class DiamondSubscriber implements Closeable {
 
 
     private void addShutdownHook() {
-        Runtime.getRuntime().addShutdownHook(new Thread() {
-            @Override
-            public void run() {
-                close();
-            }
-        });
+        Runtime.getRuntime().addShutdownHook(new Thread(() -> close()));
     }
 
     private void rotateCheckDiamonds() {
         int pollingInterval = managerConfig.getPollingInterval();
-        scheduler.schedule(new Runnable() {
-            @Override
-            public void run() {
-                new DiamondExtenderManager().loadDiamondExtenders();
-            }
-        }, 5, TimeUnit.SECONDS);
-
-        scheduler.scheduleWithFixedDelay(new Runnable() {
-            public void run() {
-                rotateCheckDiamondsTask();
-            }
-
-        }, pollingInterval, pollingInterval, TimeUnit.SECONDS);
+        scheduler.schedule(() -> new DiamondExtenderManager().loadDiamondExtenders(), 5, TimeUnit.SECONDS);
+        scheduler.scheduleWithFixedDelay(() -> rotateCheckDiamondsTask(), pollingInterval, pollingInterval, TimeUnit.SECONDS);
     }
 
     private void rotateCheckDiamondsTask() {
@@ -216,8 +196,8 @@ public class DiamondSubscriber implements Closeable {
     }
 
     public void checkSnapshot() {
-        for (Map.Entry<DiamondAxis, DiamondMeta> entry : metaCache.asMap().entrySet()) {
-            final DiamondMeta diamondMeta = entry.getValue();
+        for (val entry : metaCache.asMap().entrySet()) {
+            val diamondMeta = entry.getValue();
 
             if (diamondMeta.isUseLocal()) continue;
             if (diamondMeta.getFetchCount() > 0) continue;
@@ -233,8 +213,8 @@ public class DiamondSubscriber implements Closeable {
     }
 
     public void checkLocal() {
-        for (Map.Entry<DiamondAxis, DiamondMeta> entry : metaCache.asMap().entrySet()) {
-            final DiamondMeta diamondMeta = entry.getValue();
+        for (val entry : metaCache.asMap().entrySet()) {
+            val diamondMeta = entry.getValue();
 
             try {
                 String content = localDiamondMiner.checkLocal(diamondMeta);
@@ -252,8 +232,8 @@ public class DiamondSubscriber implements Closeable {
 
     public String createProbeUpdateString() {
         StringBuilder probeModifyBuilder = new StringBuilder();
-        for (Map.Entry<DiamondAxis, DiamondMeta> entry : metaCache.asMap().entrySet()) {
-            final DiamondMeta data = entry.getValue();
+        for (val entry : metaCache.asMap().entrySet()) {
+            val data = entry.getValue();
             if (data.isUseLocal()) continue;
 
             DiamondAxis axis = data.getDiamondAxis();

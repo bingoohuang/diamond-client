@@ -1,20 +1,18 @@
 package org.n3r.diamond.client.impl;
 
+import lombok.extern.slf4j.Slf4j;
 import org.n3r.diamond.client.DiamondAxis;
-import org.n3r.diamond.client.DiamondStone;
 import org.n3r.diamond.client.DiamondListener;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import org.n3r.diamond.client.DiamondStone;
 
-import java.util.concurrent.*;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentMap;
+import java.util.concurrent.CopyOnWriteArrayList;
+import java.util.concurrent.ExecutorService;
 
-
+@Slf4j
 class DiamondAllListener implements DiamondListener {
-    private Logger log = LoggerFactory.getLogger(DiamondAllListener.class);
-
-    private final ConcurrentMap<DiamondAxis,
-            CopyOnWriteArrayList<DiamondListener>> allListeners
-            = new ConcurrentHashMap<DiamondAxis, CopyOnWriteArrayList<DiamondListener>>();
+    private final ConcurrentMap<DiamondAxis, CopyOnWriteArrayList<DiamondListener>> allListeners = new ConcurrentHashMap<>();
 
     public void accept(final DiamondStone diamondStone) {
         CopyOnWriteArrayList<DiamondListener> listeners = allListeners.get(diamondStone.getDiamondAxis());
@@ -38,13 +36,11 @@ class DiamondAllListener implements DiamondListener {
 
         log.info("call listener {} for {}", listener, diamondStone.getDiamondAxis());
 
-        Runnable job = new Runnable() {
-            public void run() {
-                try {
-                    listener.accept(diamondStone);
-                } catch (Throwable t) {
-                    log.error("listener error {}", listener, t);
-                }
+        Runnable job = () -> {
+            try {
+                listener.accept(diamondStone);
+            } catch (Throwable t) {
+                log.error("listener error {}", listener, t);
             }
         };
 
@@ -64,7 +60,7 @@ class DiamondAllListener implements DiamondListener {
 
         CopyOnWriteArrayList<DiamondListener> listenerList = allListeners.get(diamondAxis);
         if (listenerList == null) {
-            listenerList = new CopyOnWriteArrayList<DiamondListener>();
+            listenerList = new CopyOnWriteArrayList<>();
             CopyOnWriteArrayList<DiamondListener> oldList = allListeners.putIfAbsent(diamondAxis, listenerList);
             if (oldList != null) listenerList = oldList;
         }

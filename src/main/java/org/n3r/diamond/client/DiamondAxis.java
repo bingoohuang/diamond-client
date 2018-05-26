@@ -51,9 +51,7 @@ public class DiamondAxis {
         DiamondAxis that = (DiamondAxis) o;
 
         if (!dataId.equals(that.dataId)) return false;
-        if (!group.equals(that.group)) return false;
-
-        return true;
+        return group.equals(that.group);
     }
 
     @Override

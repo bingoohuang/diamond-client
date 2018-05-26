@@ -3,6 +3,7 @@ package org.n3r.diamond.client.impl;
 import com.google.common.base.Splitter;
 import com.google.common.base.Strings;
 import com.google.common.net.HostAndPort;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.httpclient.*;
 import org.apache.commons.httpclient.auth.AuthScope;
 import org.apache.commons.httpclient.methods.GetMethod;
@@ -10,8 +11,6 @@ import org.apache.commons.httpclient.methods.PostMethod;
 import org.apache.commons.httpclient.params.HttpConnectionManagerParams;
 import org.apache.commons.httpclient.params.HttpMethodParams;
 import org.apache.commons.io.IOUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -21,15 +20,11 @@ import java.util.List;
 import java.util.Set;
 import java.util.zip.GZIPInputStream;
 
-class DiamondHttpClient {
+@Slf4j class DiamondHttpClient {
     private MultiThreadedHttpConnectionManager connectionManager;
-    private Logger log = LoggerFactory.getLogger(DiamondHttpClient.class);
-    private final DiamondManagerConf diamondManagerConf;
     private HttpClient httpClient;
 
     public DiamondHttpClient(DiamondManagerConf diamondManagerConf) {
-        this.diamondManagerConf = diamondManagerConf;
-
         if (MockDiamondServer.isTestMode()) return;
 
         connectionManager = new MultiThreadedHttpConnectionManager();
@@ -68,7 +63,7 @@ class DiamondHttpClient {
         HostAndPort hostAndPort = HostAndPort.fromString(hostPort);
         int portOrDefault = hostAndPort.getPortOrDefault(Constants.DEFAULT_DIAMOND_SERVER_PORT);
         HostConfiguration hostConfiguration = httpClient.getHostConfiguration();
-        String hostText = hostAndPort.getHostText();
+        String hostText = hostAndPort.getHost();
         hostConfiguration.setHost(hostText, portOrDefault);
 
         log.debug("use host {}:{}", hostText, portOrDefault);
@@ -80,10 +75,10 @@ class DiamondHttpClient {
                                      DiamondMeta diamondMeta, long onceTimeOut) {
         if (!useContentCache && null != diamondMeta) {
             String lastModifiedHeader = diamondMeta.getLastModifiedHeader();
-            if (null != lastModifiedHeader && Constants.NULL != lastModifiedHeader) {
+            if (null != lastModifiedHeader && !Constants.NULL.equals(lastModifiedHeader)) {
                 httpMethod.addRequestHeader(Constants.IF_MODIFIED_SINCE, lastModifiedHeader);
             }
-            if (null != diamondMeta.getMd5() && Constants.NULL != diamondMeta.getMd5()) {
+            if (null != diamondMeta.getMd5() && !Constants.NULL.equals(diamondMeta.getMd5())) {
                 httpMethod.addRequestHeader(Constants.CONTENT_MD5, diamondMeta.getMd5());
             }
         }
@@ -200,7 +195,7 @@ class DiamondHttpClient {
         } catch (Exception e) {
             log.error("getUpdateDataIdsInBody error", e);
         }
-        return new HashSet<String>();
+        return new HashSet<>();
     }
 
     public void shutdown() {
