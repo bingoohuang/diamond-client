@@ -6,6 +6,7 @@ import org.n3r.diamond.client.impl.DiamondSubstituter;
 @SuppressWarnings("unchecked")
 public class Miner extends AbstractMiner implements CacheMinerable {
     private final String defaultGroupName;
+    private DiamondManager diamondManager;
 
     public Miner() {
         this(Constants.DEFAULT_GROUP);
@@ -17,10 +18,15 @@ public class Miner extends AbstractMiner implements CacheMinerable {
 
     @Override
     public String getStone(String group, String dataId) {
-        String diamond = new DiamondManager(group, dataId).getDiamond();
+        this.diamondManager = new DiamondManager(group, dataId);
+        String diamond = diamondManager.getDiamond();
         if (diamond == null) return null;
 
         return DiamondSubstituter.substitute(diamond, true, group, dataId, null);
+    }
+
+    public DiamondManager getDiamondManager() {
+        return diamondManager;
     }
 
     @Override
