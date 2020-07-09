@@ -3,7 +3,6 @@ package org.n3r.diamond.client.impl;
 import com.google.common.base.Throwables;
 import com.google.common.collect.Sets;
 import com.google.common.net.HostAndPort;
-import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.httpclient.*;
 import org.apache.commons.httpclient.methods.GetMethod;
 import org.apache.commons.httpclient.params.HttpConnectionManagerParams;
@@ -22,8 +21,8 @@ import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 
 import static org.n3r.diamond.client.impl.ClientProperties.*;
+import static org.n3r.diamond.client.impl.DiamondLogger.log;
 
-@Slf4j
 class ServerAddressesMiner {
     private volatile boolean running;
     private volatile DiamondManagerConf diamondManagerConf;
@@ -87,7 +86,7 @@ class ServerAddressesMiner {
         if (readClientServerAddress()) return;
         if (reloadServerAddresses()) return;
 
-        log.warn("no diamond servers available");
+        log().warn("no diamond servers available");
     }
 
     private boolean readClientServerAddress() {
@@ -115,12 +114,12 @@ class ServerAddressesMiner {
         try {
             FileUtils.writeLines(getLocalServerAddressFile(), domainNameList);
         } catch (Exception e) {
-            log.error("save diamond servers to local failed ", e.getMessage());
+            log().error("save diamond servers to local failed ", e.getMessage());
         }
     }
 
     private boolean reloadServerAddresses() {
-        log.info("read diamond server addresses from local");
+        log().info("read diamond server addresses from local");
         try {
             File serverAddressFile = getLocalServerAddressFile();
             if (!serverAddressFile.exists()) return false;
@@ -135,11 +134,11 @@ class ServerAddressesMiner {
             }
 
             if (diamondManagerConf.getDiamondServers().size() > 0) {
-                log.info("successfully to read diamond server addresses {} from local", addresses);
+                log().info("successfully to read diamond server addresses {} from local", addresses);
                 return true;
             }
         } catch (Exception e) {
-            log.error("failed to read diamond server addresses from local", e);
+            log().error("failed to read diamond server addresses from local", e);
         }
         return false;
     }
@@ -161,21 +160,21 @@ class ServerAddressesMiner {
 
         try {
             if (Constants.SC_OK != httpClient.executeMethod(httpMethod)) {
-                log.warn("no diamond servers available from {}.", httpClient.getHostConfiguration().getHost());
+                log().warn("no diamond servers available from {}.", httpClient.getHostConfiguration().getHost());
                 return false;
             }
 
             List<String> newDomainNameList = IOUtils.readLines(httpMethod.getResponseBodyAsStream());
             if (newDomainNameList.size() > 0) {
                 HashSet<String> diamondServers = Sets.newHashSet(newDomainNameList);
-                log.info("got diamond servers {} from NameServer {}", diamondServers, httpClient.getHostConfiguration().getHost());
+                log().info("got diamond servers {} from NameServer {}", diamondServers, httpClient.getHostConfiguration().getHost());
                 diamondManagerConf.setDiamondServers(diamondServers, diamondHttpClient);
 
                 saveServerAddressesToLocal();
                 return true;
             }
         } catch (Exception e) {
-            log.error("failed to get diamond servers from {} with error {}",
+            log().error("failed to get diamond servers from {} with error {}",
                     httpClient.getHostConfiguration().getHost(), Throwables.getStackTraceAsString(e));
         } finally {
             httpMethod.releaseConnection();

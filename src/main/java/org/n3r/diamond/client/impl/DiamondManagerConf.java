@@ -2,7 +2,6 @@ package org.n3r.diamond.client.impl;
 
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
-import lombok.extern.slf4j.Slf4j;
 
 import java.io.File;
 import java.util.List;
@@ -11,8 +10,8 @@ import java.util.Set;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import static org.n3r.diamond.client.impl.Constants.*;
+import static org.n3r.diamond.client.impl.DiamondLogger.log;
 
-@Slf4j
 public class DiamondManagerConf {
     private volatile int pollingInterval = POLLING_INTERVAL; // interval for periodically check
     private volatile int onceTimeout = ONCE_TIMEOUT; // Timeout for one try config from diamond-server
@@ -141,14 +140,14 @@ public class DiamondManagerConf {
         int diamondServerNum = diamondServers.size();
         if (diamondServerNum > 1) {
             domainNamePos.set(new Random().nextInt(diamondServerNum));
-            log.info("random DiamondServer to：" + getDomainName());
+            log().info("random DiamondServer to：" + getDomainName());
         }
     }
 
     synchronized void rotateToNextDomain(DiamondHttpClient diamondHttpClient) {
         int diamondServerNum = diamondServers.size();
         if (diamondServerNum == 0) {
-            log.error("diamond server list is empty, please contact administrator");
+            log().error("diamond server list is empty, please contact administrator");
             return;
         }
 
@@ -163,7 +162,7 @@ public class DiamondManagerConf {
 
         diamondHttpClient.resetHostConfig(getDomainName());
 
-        log.warn("rotate diamond server to " + getDomainName());
+        log().warn("rotate diamond server to " + getDomainName());
     }
 
 }

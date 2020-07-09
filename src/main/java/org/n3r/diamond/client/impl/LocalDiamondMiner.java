@@ -1,6 +1,5 @@
 package org.n3r.diamond.client.impl;
 
-import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.io.monitor.FileAlterationListenerAdaptor;
@@ -15,8 +14,8 @@ import java.util.Map;
 
 import static java.io.File.separator;
 import static org.n3r.diamond.client.impl.Constants.*;
+import static org.n3r.diamond.client.impl.DiamondLogger.log;
 
-@Slf4j
 class LocalDiamondMiner {
     private Map<String/* filePath */, Long/* timestamp */> existFilesTimestamp = new HashMap<>();
 
@@ -38,7 +37,7 @@ class LocalDiamondMiner {
                 || existFilesTimestamp.get(filePath) != diamondMeta.getLocalVersion()) {
             diamondMeta.setLocalFile(filePath);
             diamondMeta.setLocalVersion(existFilesTimestamp.get(filePath));
-            log.info("local changed, {}", diamondMeta.getDiamondAxis());
+            log().info("local changed, {}", diamondMeta.getDiamondAxis());
 
             return readFileContent(filePath);
         }
@@ -66,7 +65,7 @@ class LocalDiamondMiner {
         try {
             return FileUtils.readFileToString(file, ENCODING);
         } catch (IOException e) {
-            log.error("read file content fail {}", e.getMessage());
+            log().error("read file content fail {}", e.getMessage());
             return null;
         }
     }
@@ -104,7 +103,7 @@ class LocalDiamondMiner {
                 }
 
                 existFilesTimestamp.put(realPath, System.currentTimeMillis());
-                log.debug("File {} Created", realPath);
+                log().debug("File {} Created", realPath);
             }
 
             @Override
@@ -114,7 +113,7 @@ class LocalDiamondMiner {
                 if (rootPath.equals(grandpaDir)
                         && DIAMOND_STONE_EXT.equals("." + FilenameUtils.getExtension(realPath))) {
                     existFilesTimestamp.remove(realPath);
-                    log.debug("File {} Delete", realPath);
+                    log().debug("File {} Delete", realPath);
                 }
             }
 
@@ -128,7 +127,7 @@ class LocalDiamondMiner {
                 }
 
                 existFilesTimestamp.put(realPath, System.currentTimeMillis());
-                log.debug("File {} Created", realPath);
+                log().debug("File {} Created", realPath);
             }
 
         });
@@ -137,7 +136,7 @@ class LocalDiamondMiner {
         try {
             monitor.start();
         } catch (Exception e) {
-            log.error("start monitor fail", e);
+            log().error("start monitor fail", e);
         }
     }
 
@@ -157,7 +156,7 @@ class LocalDiamondMiner {
         if (monitor != null) try {
             monitor.stop();
         } catch (Exception e) {
-            log.error("stop monitor fail", e);
+            log().error("stop monitor fail", e);
         }
     }
 
@@ -179,7 +178,7 @@ class LocalDiamondMiner {
                 }
 
                 existFilesTimestamp.put(realPath, System.currentTimeMillis());
-                log.debug("{} file was added", realPath);
+                log().debug("{} file was added", realPath);
             }
         }
     }
@@ -193,7 +192,7 @@ class LocalDiamondMiner {
     public String getGrandpaDir(String path) {
         File file = new File(path);
         if (file.isDirectory()) {
-            log.error("{} is not a directory", path);
+            log().error("{} is not a directory", path);
             return null;
         }
 
@@ -204,7 +203,7 @@ class LocalDiamondMiner {
                 return grandpa.getAbsolutePath();
             }
         }
-        log.error("fail to get grandpa of {}", path);
+        log().error("fail to get grandpa of {}", path);
         return null;
     }
 }

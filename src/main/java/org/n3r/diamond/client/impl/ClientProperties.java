@@ -3,13 +3,13 @@ package org.n3r.diamond.client.impl;
 import com.google.common.base.Splitter;
 import com.google.common.collect.Sets;
 import com.google.common.net.HostAndPort;
-import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 
 import java.util.Properties;
 import java.util.Set;
 
-@Slf4j
+import static org.n3r.diamond.client.impl.DiamondLogger.log;
+
 public class ClientProperties {
     static Properties properties = Props.tryProperties("diamond-client.properties", ".diamond-client");
 
@@ -35,7 +35,7 @@ public class ClientProperties {
         Set<String> addresses = Sets.newHashSet(splitter.splitToList(diamondServersAddress));
 
         if (addresses.size() > 0)
-            log.info("got diamond servers {} from config {}", addresses, Constants.SERVER_ADDRESS);
+            log().info("got diamond servers {} from config {}", addresses, Constants.SERVER_ADDRESS);
 
         return addresses;
     }

@@ -3,7 +3,6 @@ package org.n3r.diamond.client.impl;
 import com.google.common.base.Splitter;
 import com.google.common.base.Strings;
 import com.google.common.net.HostAndPort;
-import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.httpclient.*;
 import org.apache.commons.httpclient.auth.AuthScope;
 import org.apache.commons.httpclient.methods.GetMethod;
@@ -20,7 +19,9 @@ import java.util.List;
 import java.util.Set;
 import java.util.zip.GZIPInputStream;
 
-@Slf4j class DiamondHttpClient {
+import static org.n3r.diamond.client.impl.DiamondLogger.log;
+
+class DiamondHttpClient {
     private MultiThreadedHttpConnectionManager connectionManager;
     private HttpClient httpClient;
 
@@ -66,7 +67,7 @@ import java.util.zip.GZIPInputStream;
         String hostText = hostAndPort.getHost();
         hostConfiguration.setHost(hostText, portOrDefault);
 
-        log.debug("use host {}:{}", hostText, portOrDefault);
+        log().debug("use host {}:{}", hostText, portOrDefault);
 
         setBasicAuth(hostText, portOrDefault);
     }
@@ -119,7 +120,7 @@ import java.util.zip.GZIPInputStream;
             return getDiamondResult;
         } catch (ConnectException e) {
             HostConfiguration hostConfiguration = httpClient.getHostConfiguration();
-            log.error("connection to {}:{} error {}", hostConfiguration.getHost(), hostConfiguration.getPort(), e.getMessage());
+            log().error("connection to {}:{} error {}", hostConfiguration.getHost(), hostConfiguration.getPort(), e.getMessage());
             throw e;
         } finally {
             getMethod.releaseConnection();
@@ -157,7 +158,7 @@ import java.util.zip.GZIPInputStream;
             try {
                 getDiamondResult.setPollingInterval(Integer.parseInt(spacingIntervalHeaders[0].getValue()));
             } catch (RuntimeException e) {
-                log.error("set polling interval error", e);
+                log().error("set polling interval error", e);
             }
         }
     }
@@ -180,7 +181,7 @@ import java.util.zip.GZIPInputStream;
             return new CheckResult(httpStatus, updateDataIdsInBody);
         } catch (ConnectException e) {
             HostConfiguration hostConfiguration = httpClient.getHostConfiguration();
-            log.error("connection to {}:{} error {}", hostConfiguration.getHost(), hostConfiguration.getPort(), e.getMessage());
+            log().error("connection to {}:{} error {}", hostConfiguration.getHost(), hostConfiguration.getPort(), e.getMessage());
             throw e;
         } finally {
             postMethod.releaseConnection();
@@ -193,7 +194,7 @@ import java.util.zip.GZIPInputStream;
             String modifiedDataIdsString = httpMethod.getResponseBodyAsString();
             return DiamondUtils.convertStringToSet(modifiedDataIdsString);
         } catch (Exception e) {
-            log.error("getUpdateDataIdsInBody error", e);
+            log().error("getUpdateDataIdsInBody error", e);
         }
         return new HashSet<>();
     }
@@ -261,7 +262,7 @@ import java.util.zip.GZIPInputStream;
                 gzin = new GZIPInputStream(is);
                 return IOUtils.toString(gzin);
             } catch (Exception e) {
-                log.error("ungzip error", e);
+                log().error("ungzip error", e);
             } finally {
                 IOUtils.closeQuietly(gzin);
                 IOUtils.closeQuietly(is);
@@ -270,7 +271,7 @@ import java.util.zip.GZIPInputStream;
             try {
                 return httpMethod.getResponseBodyAsString();
             } catch (Exception e) {
-                log.error("getResponseBodyAsString error", e);
+                log().error("getResponseBodyAsString error", e);
             }
         }
 

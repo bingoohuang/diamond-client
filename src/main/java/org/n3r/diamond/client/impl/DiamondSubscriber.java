@@ -3,7 +3,6 @@ package org.n3r.diamond.client.impl;
 import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.CacheLoader;
 import com.google.common.cache.LoadingCache;
-import lombok.extern.slf4j.Slf4j;
 import lombok.val;
 import org.apache.commons.lang3.StringUtils;
 import org.n3r.diamond.client.DiamondAxis;
@@ -15,12 +14,16 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 
-@Slf4j
+import static org.n3r.diamond.client.impl.DiamondLogger.log;
+
 public class DiamondSubscriber implements Closeable {
-    private static DiamondSubscriber instance = new DiamondSubscriber();
+
+    private static class DiamondSubscriberInstance {
+        private static final DiamondSubscriber instance = new DiamondSubscriber();
+    }
 
     public static DiamondSubscriber getInstance() {
-        return instance;
+        return DiamondSubscriberInstance.instance;
     }
 
     private final LoadingCache<DiamondAxis, DiamondMeta> metaCache
@@ -77,7 +80,7 @@ public class DiamondSubscriber implements Closeable {
             diamondRemoteChecker = new DiamondRemoteChecker(this,
                     managerConfig, diamondCache, diamondHttpClient);
 
-            log.info("diamond servers {}", managerConfig.getDiamondServers());
+            log().info("diamond servers {}", managerConfig.getDiamondServers());
 
             rotateCheckDiamonds();
         }
@@ -104,7 +107,7 @@ public class DiamondSubscriber implements Closeable {
             diamondRemoteChecker.checkRemote();
             checkSnapshot();
         } catch (Exception e) {
-            log.warn("rotateCheckDiamondsTask error {}", e.getMessage());
+            log().warn("rotateCheckDiamondsTask error {}", e.getMessage());
         }
     }
 
@@ -114,7 +117,7 @@ public class DiamondSubscriber implements Closeable {
         if (!running) return;
         running = false;
 
-        log.warn("start to close DiamondSubscriber");
+        log().warn("start to close DiamondSubscriber");
 
         localDiamondMiner.stop();
         if (serverAddressesMiner != null) serverAddressesMiner.stop();
@@ -126,7 +129,7 @@ public class DiamondSubscriber implements Closeable {
 
         diamondCache.close();
 
-        log.warn("end to close DiamondSubscriber");
+        log().warn("end to close DiamondSubscriber");
     }
 
     public DiamondRemoteChecker getDiamondRemoteChecker() {
@@ -144,7 +147,7 @@ public class DiamondSubscriber implements Closeable {
                 return localConfig;
             }
         } catch (Exception e) {
-            log.error("get local error", e);
+            log().error("get local error", e);
         }
 
         String result = diamondRemoteChecker.retrieveRemote(diamondAxis, timeout, true);
@@ -168,7 +171,7 @@ public class DiamondSubscriber implements Closeable {
             String result = retrieveDiamondLocalAndRemote(diamondAxis, timeout);
             if (StringUtils.isNotBlank(result)) return result;
         } catch (Exception t) {
-            log.error(t.getMessage());
+            log().error(t.getMessage());
         }
 
         if (MockDiamondServer.isTestMode()) return null;
@@ -186,7 +189,7 @@ public class DiamondSubscriber implements Closeable {
 
             return diamondContent;
         } catch (Exception e) {
-            log.error("getSnapshot diamondAxis {} error {}", diamondAxis, e.getMessage());
+            log().error("getSnapshot diamondAxis {} error {}", diamondAxis, e.getMessage());
             return null;
         }
     }
@@ -219,12 +222,12 @@ public class DiamondSubscriber implements Closeable {
             try {
                 String content = localDiamondMiner.checkLocal(diamondMeta);
                 if (null != content) {
-                    log.info("local config read, {}", diamondMeta.getDiamondAxis());
+                    log().info("local config read, {}", diamondMeta.getDiamondAxis());
 
                     diamondRemoteChecker.onDiamondChanged(diamondMeta, content);
                 }
             } catch (Exception e) {
-                log.error("check local error", e);
+                log().error("check local error", e);
             }
         }
     }

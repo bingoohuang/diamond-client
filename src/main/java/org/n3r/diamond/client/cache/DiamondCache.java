@@ -5,7 +5,6 @@ import com.google.common.base.Throwables;
 import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
 import com.google.common.util.concurrent.Futures;
-import lombok.extern.slf4j.Slf4j;
 import lombok.val;
 import org.n3r.diamond.client.DiamondAxis;
 import org.n3r.diamond.client.impl.DiamondSubstituter;
@@ -16,8 +15,8 @@ import java.util.Arrays;
 import java.util.concurrent.*;
 
 import static org.apache.commons.lang3.StringUtils.isEmpty;
+import static org.n3r.diamond.client.impl.DiamondLogger.log;
 
-@Slf4j
 public class DiamondCache {
     private final SnapshotMiner snapshotMiner;
     private ExecutorService executorService = Executors.newSingleThreadExecutor();
@@ -38,7 +37,7 @@ public class DiamondCache {
         try {
             cachedObject = cache.get(diamondAxis, callable);
         } catch (ExecutionException e) {
-            log.error("get cache {} failed with error {}", diamondContent, Throwables.getStackTraceAsString(e));
+            log().error("get cache {} failed with error {}", diamondContent, Throwables.getStackTraceAsString(e));
             return null;
         }
 
@@ -52,7 +51,7 @@ public class DiamondCache {
         try {
             subCachedObject = subCache.get(dynamicsHasCode, dynamicCallable);
         } catch (ExecutionException e) {
-            log.error("get dynamic cache {} failed with {}", diamondContent, Throwables.getStackTraceAsString(e));
+            log().error("get dynamic cache {} failed with {}", diamondContent, Throwables.getStackTraceAsString(e));
             return null;
         }
 
@@ -92,11 +91,11 @@ public class DiamondCache {
         try {
             return future.get(3, TimeUnit.SECONDS);
         } catch (TimeoutException e) {   // 有限时间内不返回，尝试读取snapshot版本
-            log.error("update cache {} timeout, try to use snapshot", diamondContent);
+            log().error("update cache {} timeout, try to use snapshot", diamondContent);
             Optional<Object> object = snapshotMiner.getCache(diamondAxis, dynamicsHasCode);
             if (object != null) return object.orNull();
         } catch (Exception e) {
-            log.error("update cache {} failed with error {}", diamondContent, Throwables.getStackTraceAsString(e));
+            log().error("update cache {} failed with error {}", diamondContent, Throwables.getStackTraceAsString(e));
         }
 
         try {
@@ -104,7 +103,7 @@ public class DiamondCache {
         } catch (InterruptedException e) {
             e.printStackTrace();
         } catch (Exception e) {
-            log.error("update cache {} failed with error {}", diamondContent, Throwables.getStackTraceAsString(e));
+            log().error("update cache {} failed with error {}", diamondContent, Throwables.getStackTraceAsString(e));
         }
 
         return null;
@@ -114,20 +113,20 @@ public class DiamondCache {
                                          DiamondAxis diamondAxis,
                                          String diamondContent,
                                          Object... dynamics) {
-        log.info("start to update cache {}", diamondAxis);
+        log().info("start to update cache {}", diamondAxis);
         if (isEmpty(diamondContent)) return null;
 
         Object diamondCache;
         try {
             diamondCache = updater.call();
         } catch (Exception e) {
-            log.error("{} called with exception", diamondContent, e);
+            log().error("{} called with exception", diamondContent, e);
             return null;
         }
 
         int dynamicsHasCode = Arrays.deepHashCode(dynamics);
         snapshotMiner.saveCache(diamondAxis, diamondCache, dynamicsHasCode);
-        log.info("end to update cache {}", diamondAxis);
+        log().info("end to update cache {}", diamondAxis);
 
         return Optional.fromNullable(diamondCache);
     }
@@ -137,7 +136,7 @@ public class DiamondCache {
         String substitute = DiamondSubstituter.substitute(diamondContent, true, diamondAxis.group, diamondAxis.dataId, null);
         Callable object = DiamondUtils.parseObject(substitute, Callable.class);
         if (object == null) {
-            log.error("{} cannot be parsed as Callable", diamondContent);
+            log().error("{} cannot be parsed as Callable", diamondContent);
             return null;
         }
 

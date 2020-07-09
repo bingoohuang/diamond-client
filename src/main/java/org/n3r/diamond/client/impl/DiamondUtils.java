@@ -2,7 +2,6 @@ package org.n3r.diamond.client.impl;
 
 import com.google.common.base.Splitter;
 import com.google.common.collect.Lists;
-import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.codec.digest.DigestUtils;
 import org.apache.commons.lang3.StringEscapeUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -24,8 +23,8 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import static org.n3r.diamond.client.impl.Constants.LINE_SEPARATOR;
+import static org.n3r.diamond.client.impl.DiamondLogger.log;
 
-@Slf4j
 public class DiamondUtils {
     public static boolean toBool(String str) {
         return "true".equalsIgnoreCase(str) || "yes".equalsIgnoreCase(str)
@@ -51,7 +50,7 @@ public class DiamondUtils {
             Spec spec = SpecParser.parseSpecLeniently(specContent);
             return createObject(clazz, spec);
         } catch (Exception e) {
-            log.error("parse object {} failed by {}", specContent, e.getMessage());
+            log().error("parse object {} failed by {}", specContent, e.getMessage());
         }
 
         return null;
@@ -84,7 +83,7 @@ public class DiamondUtils {
                 if (object != null) result.add(object);
             }
         } catch (Exception e) {
-            log.error("parse object {} failed by {}", specContent, e.getMessage());
+            log().error("parse object {} failed by {}", specContent, e.getMessage());
         }
 
         return result;
@@ -99,13 +98,13 @@ public class DiamondUtils {
         try {
             modifiedDataIdsString = URLDecoder.decode(modifiedDataIdsString, "UTF-8");
         } catch (Exception e) {
-            log.error("decode modifiedDataIdsString error", e);
+            log().error("decode modifiedDataIdsString error", e);
         }
 
-        if (log.isInfoEnabled() && modifiedDataIdsString != null) {
+        if (log().isInfoEnabled() && modifiedDataIdsString != null) {
             String escaped = StringEscapeUtils.escapeJava(modifiedDataIdsString);
             if (!modifiedDataIdsString.startsWith("OK")) {
-                log.info("changes detected {}", escaped);
+                log().info("changes detected {}", escaped);
             }
         }
 
