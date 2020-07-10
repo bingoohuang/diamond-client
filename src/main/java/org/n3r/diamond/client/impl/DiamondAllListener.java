@@ -1,6 +1,5 @@
 package org.n3r.diamond.client.impl;
 
-import lombok.extern.slf4j.Slf4j;
 import org.n3r.diamond.client.DiamondAxis;
 import org.n3r.diamond.client.DiamondListener;
 import org.n3r.diamond.client.DiamondStone;
@@ -10,7 +9,8 @@ import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.ExecutorService;
 
-@Slf4j
+import static org.n3r.diamond.client.impl.DiamondLogger.log;
+
 class DiamondAllListener implements DiamondListener {
     private final ConcurrentMap<DiamondAxis, CopyOnWriteArrayList<DiamondListener>> allListeners = new ConcurrentHashMap<>();
 
@@ -25,7 +25,7 @@ class DiamondAllListener implements DiamondListener {
             try {
                 notifyListener(diamondStone, listener);
             } catch (Throwable t) {
-                log.error("call listener error, {}", diamondStone.getDiamondAxis(), t);
+                log().error("call listener error, {}", diamondStone.getDiamondAxis(), t);
             }
         }
     }
@@ -34,13 +34,13 @@ class DiamondAllListener implements DiamondListener {
     private void notifyListener(final DiamondStone diamondStone, final DiamondListener listener) {
         if (listener == null) return;
 
-        log.info("call listener {} for {}", listener, diamondStone.getDiamondAxis());
+        log().info("call listener {} for {}", listener, diamondStone.getDiamondAxis());
 
         Runnable job = () -> {
             try {
                 listener.accept(diamondStone);
             } catch (Throwable t) {
-                log.error("listener error {}", listener, t);
+                log().error("listener error {}", listener, t);
             }
         };
 

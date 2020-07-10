@@ -1,14 +1,13 @@
 package org.n3r.diamond.client.impl;
 
-import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.IOUtils;
 
 import java.io.*;
 import java.util.Properties;
 
 import static java.io.File.separator;
+import static org.n3r.diamond.client.impl.DiamondLogger.log;
 
-@Slf4j
 public class Props {
     public static Properties tryProperties(String pathname, String appHome) {
         Properties properties = new Properties();
@@ -17,7 +16,7 @@ public class Props {
             is = Props.tryResource(pathname, appHome, Props.Silent.ON);
             if (is != null) properties.load(is);
         } catch (IOException e) {
-            log.error("load properties error: {}", e.getMessage());
+            log().error("load properties error: {}", e.getMessage());
         } finally {
             IOUtils.closeQuietly(is);
         }
@@ -56,7 +55,7 @@ public class Props {
             return new FileInputStream(file);
         } catch (FileNotFoundException e) {
             // This should not happened
-            log.error("read file {} error", file, e);
+            log().error("read file {} error", file, e);
             return null;
         }
     }

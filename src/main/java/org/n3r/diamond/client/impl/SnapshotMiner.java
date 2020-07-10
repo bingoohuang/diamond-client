@@ -5,7 +5,6 @@ import com.alibaba.fastjson.parser.ParserConfig;
 import com.alibaba.fastjson.serializer.SerializerFeature;
 import com.google.common.base.Optional;
 import com.google.common.primitives.UnsignedLongs;
-import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.FileUtils;
 import org.n3r.diamond.client.DiamondAxis;
 
@@ -15,8 +14,8 @@ import java.io.IOException;
 import static java.io.File.separator;
 import static org.apache.commons.lang3.StringUtils.defaultIfEmpty;
 import static org.n3r.diamond.client.impl.Constants.*;
+import static org.n3r.diamond.client.impl.DiamondLogger.log;
 
-@Slf4j
 public class SnapshotMiner {
     private final String dir;
     private final ParserConfig parserConfig = new ParserConfig();
@@ -48,7 +47,7 @@ public class SnapshotMiner {
             File file = getOrCreateDiamondFile(diamondAxis, DIAMOND_STONE_EXT);
             FileUtils.writeStringToFile(file, defaultIfEmpty(content, ""), ENCODING);
         } catch (IOException e) {
-            log.error("save snapshot error {} by {}", diamondAxis, content, e);
+            log().error("save snapshot error {} by {}", diamondAxis, content, e);
         }
     }
 
@@ -100,7 +99,7 @@ public class SnapshotMiner {
             File file = getOrCreateDiamondFile(diamondAxis, getDynamicCacheExtension(dynamicsHasCode));
             FileUtils.writeStringToFile(file, json, ENCODING);
         } catch (IOException e) {
-            log.error("save {} cache snaptshot error", diamondAxis, e);
+            log().error("save {} cache snaptshot error", diamondAxis, e);
         }
     }
 
@@ -112,7 +111,7 @@ public class SnapshotMiner {
 
             return Optional.fromNullable(JSON.parse(fileContent, parserConfig));
         } catch (IOException e) {
-            log.error("read cache snapshot {} failed {}", e.getMessage());
+            log().error("read cache snapshot {} failed {}", e.getMessage());
         }
 
         return null;

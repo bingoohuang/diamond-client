@@ -1,6 +1,5 @@
 package org.n3r.diamond.client.loglevel;
 
-import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.n3r.diamond.client.DiamondAxis;
 import org.n3r.diamond.client.DiamondExtender;
@@ -9,9 +8,9 @@ import org.n3r.diamond.client.DiamondStone;
 
 import java.util.Properties;
 
+import static org.n3r.diamond.client.impl.DiamondLogger.log;
 import static org.n3r.diamond.client.impl.DiamondUtils.parseStoneToProperties;
 
-@Slf4j
 public class LoggerLevelChangerExtender implements DiamondExtender, DiamondListener {
     LoggerLevelChanger loggerLevelChanger = new LoggerLevelChanger();
 
@@ -46,7 +45,7 @@ public class LoggerLevelChangerExtender implements DiamondExtender, DiamondListe
         try {
             return LoggerLevel.valueOf(level.toUpperCase());
         } catch (IllegalArgumentException e) {
-            log.warn("log level {} is invalid", level);
+            log().warn("log level {} is invalid", level);
             return null;
         }
     }

@@ -4,7 +4,6 @@ import com.google.common.base.Optional;
 import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
 import com.google.common.util.concurrent.MoreExecutors;
-import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.n3r.diamond.client.DiamondAxis;
 import org.n3r.diamond.client.DiamondListener;
@@ -17,7 +16,8 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 
-@Slf4j
+import static org.n3r.diamond.client.impl.DiamondLogger.log;
+
 class DiamondRemoteChecker {
     private final DiamondCache diamondCache;
 
@@ -81,7 +81,7 @@ class DiamondRemoteChecker {
         try {
             retrieveRemoteAndInvokeListeners(diamondMeta);
         } catch (Exception e) {
-            log.error("retrieveRemoteAndInvokeListeners error", e.getMessage());
+            log().error("retrieveRemoteAndInvokeListeners error", e.getMessage());
         }
     }
 
@@ -91,7 +91,7 @@ class DiamondRemoteChecker {
         // if (null == diamondContent) return;
 
         if (null == diamondAllListener) {
-            log.warn("null == configInfoListenable");
+            log().warn("null == configInfoListenable");
             return;
         }
 
@@ -111,7 +111,7 @@ class DiamondRemoteChecker {
                 diamondAllListener.accept(diamondStone);
                 return diamondCache.updateDiamondCacheOnChange(diamondStone.getDiamondAxis(), content);
             } catch (Throwable t) {
-                log.error("onDiamondChanged {} with error {}", diamondMeta.getDiamondAxis(), t.getMessage());
+                log().error("onDiamondChanged {} with error {}", diamondMeta.getDiamondAxis(), t.getMessage());
             }
             return null;
         };
@@ -145,12 +145,12 @@ class DiamondRemoteChecker {
             if (triedTimes > 0) managerConfig.rotateToNextDomain(diamondHttpClient);
 
             if (triedTimes > totalRetryTimes + 1) {
-                log.warn("reached the max retry times");
+                log().warn("reached the max retry times");
                 break;
             }
 
             if (triedTimes > 0 )
-                log.info("retrieve config，try {} times with costTime {}", triedTimes, costTime);
+                log().info("retrieve config，try {} times with costTime {}", triedTimes, costTime);
 
             ++triedTimes;
 
@@ -169,7 +169,7 @@ class DiamondRemoteChecker {
                     case Constants.SC_NOT_MODIFIED:
                         return onNotModified(diamondAxis, diamondMeta, getDiamondResult);
                     case Constants.SC_NOT_FOUND:
-                        log.warn("{} not found", diamondAxis);
+                        log().warn("{} not found", diamondAxis);
                         diamondMeta.setMd5(Constants.NULL);
                         diamondSubscriber.removeSnapshot(diamondAxis);
                         diamondCache.removeCacheSnapshot(diamondAxis);
@@ -177,14 +177,14 @@ class DiamondRemoteChecker {
                         return null;
                     default: {
                         if (httpStatus != lastHttpStatus) {
-                            log.warn("{}: HTTP State: {} : {} ", diamondAxis, httpStatus, diamondHttpClient.getState());
+                            log().warn("{}: HTTP State: {} : {} ", diamondAxis, httpStatus, diamondHttpClient.getState());
                             lastHttpStatus = httpStatus;
                         }
                     }
                 }
             } catch (Exception e) {
                 if (!isMessageSameExeption(e, lastException)) {
-                    log.error("{}: http error：{}", diamondAxis, e.getMessage());
+                    log().error("{}: http error：{}", diamondAxis, e.getMessage());
                     lastException = e;
                 }
             }
@@ -218,16 +218,16 @@ class DiamondRemoteChecker {
                         return checkResult.getUpdateDataIdsInBody();
                     default:
                         if (httpStatus != lastHttpStatus) {
-                            log.warn("get changed DataID list response HTTP State: " + httpStatus);
+                            log().warn("get changed DataID list response HTTP State: " + httpStatus);
                             lastHttpStatus = httpStatus;
                         }
                 }
             } catch (NoNameServerAvailableException e) {
-                log.warn("checkUpdateDataIds error {}", e.getMessage());
+                log().warn("checkUpdateDataIds error {}", e.getMessage());
                 break;
             } catch (Exception e) {
                 if (!isMessageSameExeption(e, lastException)){
-                    log.warn("checkUpdateDataIds error {}", e.getMessage());
+                    log().warn("checkUpdateDataIds error {}", e.getMessage());
                     lastException = e;
                 }
             }
@@ -289,7 +289,7 @@ class DiamondRemoteChecker {
 
         diamondMeta.setMd5(md5);
         changeSpacingInterval(httpMethod);
-        log.info("{} not modified", diamondAxis);
+        log().info("{} not modified", diamondAxis);
         return null;
     }
 

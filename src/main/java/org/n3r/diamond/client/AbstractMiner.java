@@ -4,7 +4,6 @@ import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import com.google.common.base.MoreObjects;
-import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.n3r.diamond.client.impl.DiamondUtils;
 import org.n3r.diamond.client.impl.PropertiesBasedMiner;
@@ -13,10 +12,10 @@ import java.util.List;
 import java.util.Properties;
 import java.util.concurrent.TimeUnit;
 
+import static org.n3r.diamond.client.impl.DiamondLogger.log;
 import static org.n3r.diamond.client.impl.DiamondUtils.parseObject;
 import static org.n3r.diamond.client.impl.DiamondUtils.parseObjects;
 
-@Slf4j
 public abstract class AbstractMiner implements Minerable {
     public abstract String getDefaultGroupName();
 
@@ -125,7 +124,7 @@ public abstract class AbstractMiner implements Minerable {
         try {
             return JSON.parseObject(stone);
         } catch (Exception e) {
-            log.error("parse stone to JSON failed " + stone, e);
+            log().error("parse stone to JSON failed " + stone, e);
             throw new DiamondException.WrongType(e);
         }
     }
@@ -137,7 +136,7 @@ public abstract class AbstractMiner implements Minerable {
         try {
             return JSON.parseObject(stone, clazz);
         } catch (Exception e) {
-            log.error("parse stone to JSON failed " + stone, e);
+            log().error("parse stone to JSON failed " + stone, e);
             throw new DiamondException.WrongType(e);
         }
     }
@@ -159,7 +158,7 @@ public abstract class AbstractMiner implements Minerable {
         try {
             return JSON.parseArray(stone);
         } catch (Exception e) {
-            log.error("parse stone to JSONArray failed " + stone, e);
+            log().error("parse stone to JSONArray failed " + stone, e);
             throw new DiamondException.WrongType(e);
         }
     }
@@ -171,7 +170,7 @@ public abstract class AbstractMiner implements Minerable {
         try {
             return JSON.parseArray(stone, clazz);
         } catch (Exception e) {
-            log.error("parse stone to JSONArray failed " + stone, e);
+            log().error("parse stone to JSONArray failed " + stone, e);
             throw new DiamondException.WrongType(e);
         }
     }
