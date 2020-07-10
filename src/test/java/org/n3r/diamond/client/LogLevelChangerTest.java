@@ -1,17 +1,19 @@
 package org.n3r.diamond.client;
 
 import org.junit.Test;
+import org.n3r.diamond.client.impl.DiamondSubscriber;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.concurrent.TimeUnit;
 
 public class LogLevelChangerTest {
-    Logger logger = LoggerFactory.getLogger(LogLevelChangerTest.class);
 
     @Test
     public void test() throws InterruptedException {
+        DiamondSubscriber.getInstance().start();
         new Miner().getString("some");
+        Logger logger = LoggerFactory.getLogger(LogLevelChangerTest.class);
 
         /*while (true)*/ {
             logger.debug("this is debug information");
